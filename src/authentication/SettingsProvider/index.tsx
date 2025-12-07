@@ -1,7 +1,6 @@
-import { onAuthStateChanged, type User } from "firebase/auth";
 import React, { createContext, useContext, useEffect, useState } from "react";
-import { auth, db } from "../../utils/firebase";
-import type { HouseholdDoc } from "../../types/firestore";
+import { db } from "../../utils/firebase";
+import type { CategoryDoc, ChoreDoc, HouseholdDoc } from "../../types/firestore";
 import { collection, onSnapshot, query, where } from "firebase/firestore";
 import { useAuth } from "../AuthContext";
 import { Collection } from "../../enums/firebase";
@@ -9,6 +8,8 @@ import { Collection } from "../../enums/firebase";
 type SettingsProviderContextValue = {
   isLoaded: boolean;
   household: HouseholdDoc | null;
+  categories: CategoryDoc[];
+  chores: ChoreDoc[];
 };
 
 const defaultCallback = () => {
@@ -18,12 +19,17 @@ const defaultCallback = () => {
 const SettingsProviderContext = createContext<SettingsProviderContextValue>({
   household: null,
   isLoaded: false,
+  categories: [],
+  chores: [],
 });
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
-  const [internalHousehold, setInternalHousehold] = useState<HouseholdDoc | null>(null);
+
   const [internalIsLoaded, setInternalIsLoaded] = useState(false);
+  const [internalHousehold, setInternalHousehold] = useState<HouseholdDoc | null>(null);
+  const [internalCategories, setInternalCategories] = useState<CategoryDoc[]>([]);
+  const [internalChores, setInternalChores] = useState<ChoreDoc[]>([]);
 
   useEffect(() => {
     const householdsRef = collection(db, Collection.Households);
@@ -54,10 +60,69 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
     return () => unsubscribe();
   }, []);
 
+  useEffect(() => {
+    if (!internalHousehold) return;
+
+    const categoriesRef = collection(
+      db,
+      Collection.Households,
+      internalHousehold.id,
+      Collection.Categories,
+    );
+
+    const choresRef = collection(
+      db,
+      Collection.Households,
+      internalHousehold.id,
+      Collection.Chores,
+    );
+
+    const unsubscribeCategories = onSnapshot(
+      categoriesRef,
+      (snapshot) => {
+        const docs: CategoryDoc[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data() as Omit<CategoryDoc, "id">;
+          return {
+            id: docSnap.id,
+            ...data,
+          };
+        });
+        setInternalCategories(docs);
+      },
+      (err) => {
+        console.error("Error fetching categories:", err);
+      }
+    );
+
+    const unsubscribeChores = onSnapshot(
+      choresRef,
+      (snapshot) => {
+        const docs: ChoreDoc[] = snapshot.docs.map((docSnap) => {
+          const data = docSnap.data() as Omit<ChoreDoc, "id">;
+          return {
+            id: docSnap.id,
+            ...data,
+          };
+        });
+        setInternalChores(docs);
+      },
+      (err) => {
+        console.error("Error fetching chores:", err);
+      }
+    );
+
+    return () => {
+      unsubscribeCategories();
+      unsubscribeChores();
+    };
+  }, [internalHousehold]);
+
   return (
     <SettingsProviderContext.Provider value={{
       isLoaded: internalIsLoaded,
       household: internalHousehold,
+      categories: internalCategories,
+      chores: internalChores,
     }}>
       {children}
     </SettingsProviderContext.Provider>

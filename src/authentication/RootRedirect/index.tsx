@@ -5,7 +5,6 @@ import { useAuth } from "../AuthContext";
 export const RootRedirect: React.FC = () => {
   const { user, loading } = useAuth();
 
-  console.log('asdf', user, loading)
   if (loading) {
     return <div>Loading...</div>;
   }

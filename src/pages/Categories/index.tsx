@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import {
   Box,
   Typography,
@@ -17,59 +17,16 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { CategotyDialog } from './components/CategoryDialog';
 import { useSettingsProvider } from '../../authentication/SettingsProvider';
 import type { CategoryDoc } from '../../types/firestore';
-import { collection, onSnapshot } from 'firebase/firestore';
-import { db } from '../../utils/firebase';
-import { Collection } from '../../enums/firebase';
 import { createCategory, deleteCategory, updateCategory } from '../../infra/categories';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 
 export const CategoriesPage: React.FC = () => {
-  const {household} = useSettingsProvider();
+  const {household, categories} = useSettingsProvider();
 
   const [open, setOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [categoryToChange, setCategoryToChange] = useState<CategoryDoc | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
-  const [categories, setCategories] = useState<CategoryDoc[]>([]);
-
-  useEffect(() => {
-    if (!household) {
-      setCategories([]);
-      setIsLoading(false);
-      return;
-    }
-
-    setIsLoading(true);
-
-    const categoriesRef = collection(
-      db,
-      Collection.Households,
-      household.id,
-      Collection.Categories,
-    );
-
-    const unsubscribe = onSnapshot(
-      categoriesRef,
-      (snapshot) => {
-        const docs: CategoryDoc[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data() as Omit<CategoryDoc, "id">;
-          return {
-            id: docSnap.id,
-            ...data,
-          };
-        });
-        console.log('categories', docs)
-        setCategories(docs);
-        setIsLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching categories:", err);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [household]);
 
   const handleOpen = (category?: CategoryDoc) => {
     setOpen(true);

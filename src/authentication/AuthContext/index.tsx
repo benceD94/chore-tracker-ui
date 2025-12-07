@@ -27,8 +27,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(firebaseUser);
       setLoading(false);
     }, (err) => {
-      // TODO: handle error
-      console.log('Auth state change error', err)
+      console.error('Auth state change error', err)
     });
   }, []);
 

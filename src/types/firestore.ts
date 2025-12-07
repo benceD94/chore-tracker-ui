@@ -20,6 +20,7 @@ export type CategoryDoc = {
 };
 
 export type ChoreDoc = {
+  id: string;
   name: string;
   points: number;
   categoryRef: Ref<CategoryDoc>;

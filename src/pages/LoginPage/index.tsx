@@ -22,15 +22,7 @@ export const LoginPage: React.FC = () => {
 
   const handleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, provider);
-
-      const loggedInUser = result.user;
-      console.log("Signed in as:", loggedInUser.displayName, loggedInUser.email);
-
-      // Optional: access Google OAuth token
-      const cred = GoogleAuthProvider.credentialFromResult(result);
-      const accessToken = cred?.accessToken;
-      console.log("Access token:", accessToken);
+      signInWithPopup(auth, provider);
     } catch (error: any) {
       console.error("Google sign-in error", error);
       alert(error.message || "Failed to sign in");
