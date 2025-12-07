@@ -7,6 +7,7 @@ import { Avatar, Box, Button, Card, CardContent, Chip, Divider, IconButton, Skel
 import { HouseholdDialog } from "./components/HouseholdDialog";
 import { createHousehold } from "../../infra/households";
 import { Edit, Home } from "@mui/icons-material";
+import { Collection } from "../../enums/firebase";
 
 export const HouseholdPage: React.FC = () => {
   const { user } = useAuth();
@@ -16,7 +17,7 @@ export const HouseholdPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
 
   useEffect(() => {
-    const householdsRef = collection(db, "households");
+    const householdsRef = collection(db, Collection.Households);
     const q = query(
       householdsRef,
       where("memberIds", "array-contains", user?.uid)
@@ -32,7 +33,6 @@ export const HouseholdPage: React.FC = () => {
             ...data,
           };
         });
-        console.log('asdf', user, docs)
         setHousehold(docs[0]);
         setIsLoading(false);
       },

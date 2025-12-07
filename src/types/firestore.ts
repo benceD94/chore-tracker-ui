@@ -16,6 +16,7 @@ export type HouseholdDoc = {
 
 export type CategoryDoc = {
   name: string;
+  id: string;
 };
 
 export type ChoreDoc = {

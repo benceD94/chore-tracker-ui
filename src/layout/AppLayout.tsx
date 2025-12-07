@@ -5,6 +5,7 @@ import { Outlet } from "react-router";
 import { UserAvatar } from "./components/UserAvatar";
 import { Navigation } from "./components/Navigation";
 import { DRAWER_WIDTH } from "./constant";
+import { SettingsProvider } from "../authentication/SettingsProvider";
 
 export const AppLayout: React.FC = () => {
   const theme = useTheme();
@@ -55,7 +56,9 @@ export const AppLayout: React.FC = () => {
         }}
       >
         <Toolbar />
-        <Outlet />
+        <SettingsProvider>
+          <Outlet />
+        </SettingsProvider>
       </Box>
     </Box>
   );
