@@ -8,6 +8,7 @@ export type UserDoc = {
 
 export type HouseholdDoc = {
   name: string;
+  id: string;
   memberIds: string[];
   createdAt: Date;
   createdBy: string;

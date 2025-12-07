@@ -10,7 +10,7 @@ import { ChoresPage } from "./pages/Chores";
 import { CategoriesPage } from "./pages/Categories";
 import { HouseholdPage } from "./pages/Households";
 import { RequireAuth } from "./authentication/RequireAuth";
-import { AppLayout } from "./AppLayout";
+import { AppLayout } from "./layout/AppLayout";
 import { RootRedirect } from "./authentication/RootRedirect";
 
 const router = createBrowserRouter([
