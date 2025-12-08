@@ -2,15 +2,7 @@ import React, { useState } from 'react';
 import {
   Box,
   Typography,
-  Card,
-  CardContent,
   Grid,
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  Avatar,
-  Divider,
   Stack,
   Button,
   Select,
@@ -28,6 +20,7 @@ import { useRegistryView, RegistryDateFilter } from '../../hooks/useRegistry';
 import { Summary } from './components/Summary';
 import { Leaderboard } from './components/Leaderboard';
 import { useToast } from '../../components/ToastProvider';
+import { RegisteredChoresList } from './components/RegisteredChoresList';
 
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
@@ -95,44 +88,7 @@ export const DashboardPage: React.FC = () => {
       <Summary entries={choresDone} />
 
       <Grid container spacing={3}>
-        <Grid size={{ xs: 12, sm: 6, md: 7 }}>
-          <Card>
-            <CardContent sx={{ p: 3 }}>
-              <Typography variant="h6" gutterBottom>
-                Recent activity
-              </Typography>
-              <Divider sx={{ mb: 2 }} />
-              <List disablePadding>
-                {choresDone.map((chore) => (
-                  <ListItem
-                    key={chore.id}
-                    sx={{
-                      px: 0,
-                      py: 1.5,
-                      borderBottom: '1px solid',
-                      borderColor: 'divider',
-                    }}
-                  >
-                    <ListItemAvatar>
-                      <Avatar src={chore.userPhotoURL} />
-                    </ListItemAvatar>
-                    <ListItemText
-                      primary={
-                        <Typography>
-                          <strong>{chore.userName.split(' ')[0]}</strong> completed{' '}
-                          {chore.choreName} (+{chore.points})
-                        </Typography>
-                      }
-                      secondary={chore.completedAt?.toDateString()}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        {/* Leaderboard */}
+        <RegisteredChoresList choresDone={choresDone} />
         <Leaderboard entries={choresDone} />
       </Grid>
       {isMobile && <Box sx={{position: 'fixed', bottom: 10, left: 'calc(50% - 105px)'}}>{registerButton('large')}</Box>}

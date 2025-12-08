@@ -11,6 +11,7 @@ export type RegistryEntryView = {
   points: number;
   completedAt: Date | null;
 
+  choreId: string;
   choreName: string;
   chorePoints: number;
   categoryName: string;
@@ -206,7 +207,6 @@ export function useRegistryView(householdId: string | null, filter: RegistryDate
           const userMap = new Map<string, { id: string; doc: UserDoc }>();
           userDocs.forEach((snap) => {
             if (snap.exists()) {
-              console.log('exists')
               userMap.set(snap.ref.path, {
                 id: snap.id,
                 doc: snap.data() as UserDoc,
@@ -220,6 +220,7 @@ export function useRegistryView(householdId: string | null, filter: RegistryDate
             const chore = choreMap.get(entry.choreRef.path);
             const user = userMap.get(entry.userRef.path);
 
+            const choreId = entry.choreRef.id;
             const choreName = chore?.name ?? "Unknown chore";
             const chorePoints = chore?.points ?? entry.points ?? 0;
             const categoryName = chore?.categoryName ?? "";
@@ -233,6 +234,7 @@ export function useRegistryView(householdId: string | null, filter: RegistryDate
               points: entry.points ?? chorePoints,
               completedAt: entry.completedAt,
 
+              choreId,
               choreName,
               chorePoints,
               categoryName,
@@ -242,6 +244,7 @@ export function useRegistryView(householdId: string | null, filter: RegistryDate
               userPhotoURL,
             };
           });
+
 
           setEntries(viewEntries);
           setLoading(false);
