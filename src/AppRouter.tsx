@@ -36,7 +36,11 @@ const router = createBrowserRouter([
       },
     ],
   },
-]);
+],
+{
+  basename: "/chore-tracker-ui",
+}
+);
 
 export const AppRouter: React.FC = () => {
   return <RouterProvider router={router} />;
