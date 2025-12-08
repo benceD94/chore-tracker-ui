@@ -16,6 +16,8 @@ import {
   Select,
   MenuItem,
   type SelectChangeEvent,
+  useMediaQuery,
+  useTheme,
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { RegisterChoreDialog } from './components/RegisterChoreDialog';
@@ -26,10 +28,14 @@ import { useAuth } from '../../authentication/AuthContext';
 import { useRegistryView, RegistryDateFilter } from '../../hooks/useRegistry';
 import { Summary } from './components/Summary';
 import { Leaderboard } from './components/Leaderboard';
+import { useToast } from '../../components/ToastProvider';
 
 export const DashboardPage: React.FC = () => {
+  const theme = useTheme();
+  const {notify} = useToast();
   const {user} = useAuth();
   const {household} = useSettingsProvider();
+  const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [filter, setFilter] = useState<RegistryDateFilter>(RegistryDateFilter.Today);
   const { entries: choresDone } = useRegistryView(household?.id || '', filter);
@@ -44,17 +50,25 @@ export const DashboardPage: React.FC = () => {
     setIsChoreDialogOpen(false);
   }
 
-  const handleSaveChoreDialog = async (selectedChore: ChoreDoc) => {
+  const handleSaveChoreDialog = (selectedChore: ChoreDoc) => {
     setIsChoreDialogOpen(false);
     if (household && user) {
-      await registerChoreDone({
+      registerChoreDone({
         householdId: household.id,
         choreId: selectedChore.id,
         userId: user?.uid,
         points: selectedChore.points,
-      });
+      })
+      .then(() => {
+        notify.success('Chore registed');
+      })
+      .catch(() => {
+        notify.error('Chore register failed');
+      })
     }
   }
+
+  const registerButton = (size: 'small' | 'medium' | 'large' = 'medium') => <Button variant="contained" size={size} startIcon={<Add />} onClick={() => setIsChoreDialogOpen(true)}>Register Chore</Button>;
 
   return (
     <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>
@@ -71,7 +85,7 @@ export const DashboardPage: React.FC = () => {
           >
             {Object.values(RegistryDateFilter).map((dateFilter) => <MenuItem value={dateFilter} key={dateFilter}>{dateFilter}</MenuItem>)}
           </Select>
-          <Button variant="contained" size="medium" startIcon={<Add />} onClick={() => setIsChoreDialogOpen(true)}>Register Chore</Button>
+          {!isMobile && registerButton('medium')}
         </Box>
       </Stack>
 
@@ -118,6 +132,7 @@ export const DashboardPage: React.FC = () => {
         {/* Leaderboard */}
         <Leaderboard entries={choresDone} />
       </Grid>
+      {isMobile && <Box sx={{position: 'fixed', bottom: 10, left: 'calc(50% - 105px)'}}>{registerButton('large')}</Box>}
       <RegisterChoreDialog
         open={isChoreDialogOpen}
         onClose={handleCloseChoreDialog}

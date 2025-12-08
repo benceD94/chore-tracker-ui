@@ -4,6 +4,7 @@ import type { ChoreDoc, RegistryEntryDoc, UserDoc } from "../types/firestore";
 import { registryCol } from "../utils/firebaseRefs";
 import { db } from "../utils/firebase";
 import { useEffect, useState } from "react";
+import { useToast } from "../components/ToastProvider";
 
 export type RegistryEntryView = {
   id: string;
@@ -123,6 +124,7 @@ function getDateRange(filter: RegistryDateFilter): {
 }
 
 export function useRegistryView(householdId: string | null, filter: RegistryDateFilter) {
+  const {notify} = useToast();
   const [entries, setEntries] = useState<RegistryEntryView[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<any | null>(null);
@@ -244,6 +246,7 @@ export function useRegistryView(householdId: string | null, filter: RegistryDate
           setEntries(viewEntries);
           setLoading(false);
         } catch (err: any) {
+          notify.error('Error fetching households');
           console.error("Error building registry view:", err);
           if (!cancelled) {
             setError(err);
@@ -252,6 +255,7 @@ export function useRegistryView(householdId: string | null, filter: RegistryDate
         }
       },
       (err) => {
+        notify.error('Error listening to registry');
         console.error("Error listening to registry:", err);
         setError(err);
         setLoading(false);

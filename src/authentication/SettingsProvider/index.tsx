@@ -4,6 +4,7 @@ import type { CategoryDoc, ChoreDoc, HouseholdDoc, UserDoc } from "../../types/f
 import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
 import { useAuth } from "../AuthContext";
 import { Collection } from "../../enums/firebase";
+import { useToast } from "../../components/ToastProvider";
 
 type SettingsProviderContextValue = {
   isLoaded: boolean;
@@ -21,6 +22,7 @@ const SettingsProviderContext = createContext<SettingsProviderContextValue>({
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { user } = useAuth();
+  const { notify } = useToast();
 
   const [internalIsLoaded, setInternalIsLoaded] = useState(false);
   const [internalHousehold, setInternalHousehold] = useState<HouseholdDoc | null>(null);
@@ -116,6 +118,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
           setInternalIsLoaded(true);
         }
       } catch (err) {
+        notify.error('Error fetching households or members');
         console.error("Error fetching households or members:", err);
         if (!cancelled) {
           setInternalIsLoaded(true);
@@ -123,6 +126,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       }
     },
     (err) => {
+      notify.error('Error fetching households');
       console.error("Error fetching households:", err);
       setInternalIsLoaded(true);
     }
@@ -164,6 +168,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setInternalCategories(docs);
       },
       (err) => {
+        notify.error('Error fetching categories');
         console.error("Error fetching categories:", err);
       }
     );
@@ -181,6 +186,7 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setInternalChores(docs);
       },
       (err) => {
+        notify.error('Error fetching chores');
         console.error("Error fetching chores:", err);
       }
     );

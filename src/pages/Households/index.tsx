@@ -6,9 +6,11 @@ import { addHouseholdMember, createHousehold, updateHousehold } from "../../infr
 import { Edit, Home } from "@mui/icons-material";
 import { Members } from "./components/Members";
 import { useSettingsProvider } from "../../authentication/SettingsProvider";
+import { useToast } from "../../components/ToastProvider";
 
 export const HouseholdPage: React.FC = () => {
   const { user } = useAuth();
+  const { notify } = useToast();
   const { household, isLoaded } = useSettingsProvider();
 
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
@@ -19,7 +21,9 @@ export const HouseholdPage: React.FC = () => {
 
     try {
       await createHousehold(user?.uid, householdName.trim());
+      notify.success('Household created');
     } catch (err: any) {
+      notify.error('Failed to create household');
       console.error("Failed to create household", err);
     }
   }
@@ -30,6 +34,7 @@ export const HouseholdPage: React.FC = () => {
     try {
       await addHouseholdMember(household.id, memberId);
     } catch (err: any) {
+      notify.error('Failed to add user');
       console.error("Filed to add user", err);
     }
   }
@@ -54,6 +59,7 @@ export const HouseholdPage: React.FC = () => {
       updateHousehold(household.id, name)
         .then(() => {
           setIsEditDialog(false);
+          notify.success('Household updated');
         });
     } else {
       handleCreateHousehold(name);

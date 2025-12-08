@@ -19,8 +19,10 @@ import { useSettingsProvider } from '../../authentication/SettingsProvider';
 import type { CategoryDoc } from '../../types/firestore';
 import { createCategory, deleteCategory, updateCategory } from '../../infra/categories';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
+import { useToast } from '../../components/ToastProvider';
 
 export const CategoriesPage: React.FC = () => {
+  const { notify } = useToast();
   const {household, categories} = useSettingsProvider();
 
   const [open, setOpen] = useState(false);
@@ -46,12 +48,22 @@ export const CategoriesPage: React.FC = () => {
         updateCategory(household.id, categoryToChange.id, name)
           .then(() => {
             setCategoryToChange(undefined);
+            notify.success('Category updated');
+          })
+          .catch(() => {
+            notify.error('Category update failed');
           })
           .finally(() => {
             setIsLoading(false);
           })
       } else {
-        createCategory(household.id, name);
+        createCategory(household.id, name)
+          .then(() => {
+            notify.success('Category created');
+          })
+          .catch(() => {
+            notify.error('Category creation failed');
+          });
       }
     }
   };
@@ -74,9 +86,10 @@ export const CategoriesPage: React.FC = () => {
         .then(() => {
           setCategoryToChange(undefined);
           setIsLoading(false);
+          notify.success('Category deleted');
         })
-        .finally(() => {
-          setIsLoading(false);
+        .catch(() => {
+          notify.error('Category delete failed');
         })
     }
   };

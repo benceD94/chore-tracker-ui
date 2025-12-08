@@ -11,10 +11,12 @@ import {
 } from '@mui/material';
 import { Google } from '@mui/icons-material';
 import { auth } from "../../utils/firebase";
+import { useToast } from '../../components/ToastProvider';
 
 const provider = new GoogleAuthProvider();
 
 export const LoginPage: React.FC = () => {
+  const {notify} = useToast();
   const navigate = useNavigate();
   const location = useLocation() as any;
 
@@ -24,6 +26,7 @@ export const LoginPage: React.FC = () => {
     try {
       signInWithPopup(auth, provider);
     } catch (error: any) {
+      notify.error('Google sign-in error');
       console.error("Google sign-in error", error);
       alert(error.message || "Failed to sign in");
     }

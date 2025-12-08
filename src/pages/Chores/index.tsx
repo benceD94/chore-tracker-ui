@@ -21,6 +21,7 @@ import type { ChoreDoc } from '../../types/firestore';
 import { ChoreDialog } from './components/ChoreDialog';
 import { createChore, deleteChore, updateChore } from '../../infra/chore';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
+import { useToast } from '../../components/ToastProvider';
 
 const categoryColors: Record<string, string> = {
   Kitchen: 'primary',
@@ -37,6 +38,7 @@ export type ChoreInput = {
 };
 
 export const ChoresPage: React.FC = () => {
+  const { notify } = useToast();
   const {household, chores} = useSettingsProvider();
   
   const [open, setOpen] = useState(false);
@@ -62,12 +64,22 @@ export const ChoresPage: React.FC = () => {
         updateChore(household.id, choreToChange.id, newChore)
           .then(() => {
             setChoreToChange(undefined);
+            notify.success('Chore updated');
+          })
+          .catch(() => {
+            notify.error('Chore update failed');
           })
           .finally(() => {
             setIsLoading(false);
           })
       } else {
-        createChore(household.id, newChore);
+        createChore(household.id, newChore)
+          .then(() => {
+            notify.success('Chore created');
+          })
+          .catch(() => {
+            notify.error('Chore creation failed');
+          })
       }
     }
   };
@@ -89,6 +101,10 @@ export const ChoresPage: React.FC = () => {
       deleteChore(household.id, choreToChange.id)
         .then(() => {
           setChoreToChange(undefined);
+          notify.success('Chore deleted');
+        })
+        .catch(() => {
+          notify.error('Chore deletion failed');
         })
         .finally(() => {
           setIsLoading(false);
