@@ -10,9 +10,15 @@ export const UserAvatar: React.FC = () => {
   const handleUserMenuClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     setAnchorEl(event.currentTarget);
   };
+
   const handleUserMenuClose = () => {
     setAnchorEl(null);
   };
+
+  const handleCopyUserId = () => {
+    if (user) navigator.clipboard.writeText(user.uid);
+    setAnchorEl(null);
+  }
 
   return (
     <>
@@ -30,6 +36,7 @@ export const UserAvatar: React.FC = () => {
           },
         }}
       >
+        <MenuItem onClick={handleCopyUserId}>Copy user ID</MenuItem>
         <MenuItem onClick={logout}>Logout</MenuItem>
       </Menu>
     </>

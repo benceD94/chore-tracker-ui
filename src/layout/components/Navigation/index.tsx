@@ -2,7 +2,7 @@ import { Box, Drawer, List, ListItemButton, ListItemIcon, ListItemText, Toolbar 
 import { Dashboard, Checklist, Label, Home } from "@mui/icons-material";
 import React from "react";
 import { DRAWER_WIDTH } from "../../constant";
-import { Link } from "react-router";
+import { Link, useLocation } from "react-router";
 
 const navItems = [
   { label: 'Dashboard', path: '/dashboard', icon: <Dashboard /> },
@@ -16,26 +16,28 @@ type NavigationProps = {
   onDrawerToggle: () => void;
 }
 
-const drawer = (
-  <Box>
-    <Toolbar />
-    <List>
-      {navItems.map((item) => (
-        <Link to={item.path}>
-          <ListItemButton
-            key={item.path}
-            selected={location.pathname === item.path}
-          >
-            <ListItemIcon>{item.icon}</ListItemIcon>
-            <ListItemText primary={item.label} />
-          </ListItemButton>
-        </Link>
-      ))}
-    </List>
-  </Box>
-);
-
 export const Navigation: React.FC<NavigationProps> = ({isMobileOpen, onDrawerToggle}) => {
+  const location = useLocation();
+
+  const drawer = (
+    <Box>
+      <Toolbar />
+      <List>
+        {navItems.map((item) => (
+          <Link to={item.path}>
+            <ListItemButton
+              key={item.path}
+              selected={location.pathname === item.path}
+            >
+              <ListItemIcon>{item.icon}</ListItemIcon>
+              <ListItemText primary={item.label} />
+            </ListItemButton>
+          </Link>
+        ))}
+      </List>
+    </Box>
+  );
+
   return (
     <Box
       component="nav"

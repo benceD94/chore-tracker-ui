@@ -1,6 +1,7 @@
 import type { Ref } from "../utils/firebaseRefs";
 
 export type UserDoc = {
+  id: string;
   displayName: string;
   photoURL?: string;
   createdAt: Date;
@@ -10,6 +11,7 @@ export type HouseholdDoc = {
   name: string;
   id: string;
   memberIds: string[];
+  members: UserDoc[];
   createdAt: Date;
   createdBy: string;
 };

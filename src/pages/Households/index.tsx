@@ -1,49 +1,17 @@
-import React, { useEffect, useState } from "react";
+import React, { useState } from "react";
 import { useAuth } from "../../authentication/AuthContext";
-import type { HouseholdDoc } from "../../types/firestore";
-import { collection, onSnapshot, query, where } from "firebase/firestore";
-import { db } from "../../utils/firebase";
-import { Avatar, Box, Button, Card, CardContent, Chip, Divider, IconButton, Skeleton, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, Chip, IconButton, Skeleton, Typography } from "@mui/material";
 import { HouseholdDialog } from "./components/HouseholdDialog";
-import { createHousehold } from "../../infra/households";
+import { addHouseholdMember, createHousehold } from "../../infra/households";
 import { Edit, Home } from "@mui/icons-material";
-import { Collection } from "../../enums/firebase";
+import { Members } from "./components/Members";
+import { useSettingsProvider } from "../../authentication/SettingsProvider";
 
 export const HouseholdPage: React.FC = () => {
   const { user } = useAuth();
+  const { household, isLoaded } = useSettingsProvider();
 
-  const [household, setHousehold] = useState<HouseholdDoc | null>(null);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
-
-  useEffect(() => {
-    const householdsRef = collection(db, Collection.Households);
-    const q = query(
-      householdsRef,
-      where("memberIds", "array-contains", user?.uid)
-    );
-
-    const unsubscribe = onSnapshot(
-      q,
-      (snapshot) => {
-        const docs: HouseholdDoc[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data() as Omit<HouseholdDoc, "id">;
-          return {
-            id: docSnap.id,
-            ...data,
-          };
-        });
-        setHousehold(docs[0]);
-        setIsLoading(false);
-      },
-      (err) => {
-        console.error("Error fetching households:", err);
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [user])
 
   async function handleCreateHousehold(householdName: string) {
     if (!user) return;
@@ -52,6 +20,16 @@ export const HouseholdPage: React.FC = () => {
       await createHousehold(user?.uid, householdName.trim());
     } catch (err: any) {
       console.error("Failed to create household", err);
+    }
+  }
+
+  async function handleAddMember(memberId: string) {
+    if (!household) return;
+
+    try {
+      await addHouseholdMember(household.id, memberId);
+    } catch (err: any) {
+      console.error("Filed to add user", err);
     }
   }
 
@@ -68,7 +46,7 @@ export const HouseholdPage: React.FC = () => {
     handleCreateHousehold(name);
   }
 
-  return isLoading ? <Skeleton variant="rounded" width={210} height={60} /> : 
+  return !isLoaded ? <Skeleton variant="rounded" width={210} height={60} /> : 
     (
       <Box sx={{ maxWidth: 960, margin: '0 auto' }}>
         {
@@ -124,25 +102,7 @@ export const HouseholdPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Members Section */}
-            <Card sx={{ mb: 4 }}>
-              <CardContent sx={{ p: 3 }}>
-                {/* Header */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    mb: 2,
-                  }}
-                >
-                  <Typography variant="h6">Members</Typography>
-                  <Chip label={`${household?.memberIds.length} members`} size="small" />
-                </Box>
-
-                <Divider sx={{ mb: 2 }} />
-              </CardContent>
-            </Card>
+            <Members household={household} onAddMember={handleAddMember} />
           </> : <>
             <Button variant="contained" size="small" onClick={handleAddHouseHoldClick}>Add Household</Button>
             <HouseholdDialog

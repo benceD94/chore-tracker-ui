@@ -1,4 +1,4 @@
-import { addDoc, collection, serverTimestamp } from "firebase/firestore";
+import { addDoc, arrayUnion, collection, doc, serverTimestamp, updateDoc } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { Collection } from "../enums/firebase";
 
@@ -11,4 +11,15 @@ export async function createHousehold(userId: string, name: string) {
   });
 
   return ref.id;
+}
+
+export async function addHouseholdMember(
+  householdId: string,
+  memberId: string
+) {
+  const householdRef = doc(db, Collection.Households, householdId);
+
+  await updateDoc(householdRef, {
+    memberIds: arrayUnion(memberId),
+  });
 }
