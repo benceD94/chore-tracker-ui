@@ -29,6 +29,13 @@ jobs:
         run: npm install
 
       - name: Build
+        env:
+          VITE_FIREBASE_API_KEY: "AIzaSyDPXLaD_S9yMeh4i6w9m5_7V3x9S4dHNdc"
+          VITE_FIREBASE_AUTH_DOMAIN: "chore-tracker-4e9ab.firebaseapp.com"
+          VITE_FIREBASE_PROJECT_ID: "chore-tracker-4e9ab"
+          VITE_FIREBASE_APP_ID: "1:183443611408:web:233f873fdcd309caddcf95"
+          VITE_FIREBASE_STORAGE_BUCKET: "chore-tracker-4e9ab.firebasestorage.app"
+          VITE_FIREBASE_MESSAGING_SENDER_ID: "183443611408"
         run: npm run build
 
       - name: Upload artifact
