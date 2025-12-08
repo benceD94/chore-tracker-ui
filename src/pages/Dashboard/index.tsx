@@ -20,9 +20,8 @@ import {
   useTheme,
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
-import { RegisterChoreDialog } from './components/RegisterChoreDialog';
-import type { ChoreDoc } from '../../types/firestore';
-import { registerChoreDone } from '../../infra/chore';
+import { RegisterChoreDialog, type ChoreSelection } from './components/RegisterChoreDialog';
+import { registerMultipleChoresDone } from '../../infra/chore';
 import { useSettingsProvider } from '../../authentication/SettingsProvider';
 import { useAuth } from '../../authentication/AuthContext';
 import { useRegistryView, RegistryDateFilter } from '../../hooks/useRegistry';
@@ -50,17 +49,21 @@ export const DashboardPage: React.FC = () => {
     setIsChoreDialogOpen(false);
   }
 
-  const handleSaveChoreDialog = (selectedChore: ChoreDoc) => {
+  const handleSaveChoreDialog = (selections: ChoreSelection[]) => {
     setIsChoreDialogOpen(false);
-    if (household && user) {
-      registerChoreDone({
+    if (household && user && selections.length > 0) {
+      registerMultipleChoresDone({
         householdId: household.id,
-        choreId: selectedChore.id,
-        userId: user?.uid,
-        points: selectedChore.points,
+        userId: user.uid,
+        items: selections.map(s => ({
+          choreId: s.choreId,
+          points: s.points,
+          times: s.times,
+        })),
       })
       .then(() => {
-        notify.success('Chore registed');
+        const totalChores = selections.reduce((sum, s) => sum + s.times, 0);
+        notify.success(`${totalChores} chore${totalChores > 1 ? 's' : ''} registered`);
       })
       .catch(() => {
         notify.error('Chore register failed');
