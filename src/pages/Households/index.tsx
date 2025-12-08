@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useAuth } from "../../authentication/AuthContext";
 import { Avatar, Box, Button, Card, CardContent, Chip, IconButton, Skeleton, Typography } from "@mui/material";
 import { HouseholdDialog } from "./components/HouseholdDialog";
-import { addHouseholdMember, createHousehold } from "../../infra/households";
+import { addHouseholdMember, createHousehold, updateHousehold } from "../../infra/households";
 import { Edit, Home } from "@mui/icons-material";
 import { Members } from "./components/Members";
 import { useSettingsProvider } from "../../authentication/SettingsProvider";
@@ -12,6 +12,7 @@ export const HouseholdPage: React.FC = () => {
   const { household, isLoaded } = useSettingsProvider();
 
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
+  const [isEditDialog, setIsEditDialog] = useState<boolean>(false);
 
   async function handleCreateHousehold(householdName: string) {
     if (!user) return;
@@ -37,13 +38,26 @@ export const HouseholdPage: React.FC = () => {
     setIsDialogOpen(true);
   }
 
+  const handleEditHouseHoldClick = () => {
+    setIsEditDialog(true);
+    setIsDialogOpen(true);
+  }
+
   const handleDialogClose = () => {
     setIsDialogOpen(false);
+    setIsEditDialog(false);
   }
 
   const handleDialogSave = (name: string) => {
     setIsDialogOpen(false);
-    handleCreateHousehold(name);
+    if (isEditDialog && household) {
+      updateHousehold(household.id, name)
+        .then(() => {
+          setIsEditDialog(false);
+        });
+    } else {
+      handleCreateHousehold(name);
+    }
   }
 
   return !isLoaded ? <Skeleton variant="rounded" width={210} height={60} /> : 
@@ -82,20 +96,17 @@ export const HouseholdPage: React.FC = () => {
                     </Box>
                   </Box>
 
-                  {/* Right Side */}
-                  <IconButton size="small" aria-label="edit household">
+                  <IconButton size="small" aria-label="edit household" onClick={handleEditHouseHoldClick}>
                     <Edit />
                   </IconButton>
                 </Box>
 
-                {/* Body */}
                 <Box sx={{ mb: 2 }}>
                   <Typography variant="body2" color="text.secondary">
                     Shared household for chore tracking.
                   </Typography>
                 </Box>
 
-                {/* Footer Row */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
                   <Chip label={`Household ID: ${household.id}`} size="small" variant="outlined" />
                 </Box>
@@ -105,13 +116,15 @@ export const HouseholdPage: React.FC = () => {
             <Members household={household} onAddMember={handleAddMember} />
           </> : <>
             <Button variant="contained" size="small" onClick={handleAddHouseHoldClick}>Add Household</Button>
-            <HouseholdDialog
-              open={isDialogOpen}
-              onClose={handleDialogClose}
-              onSave={handleDialogSave}
-            />
           </>
         }
+        <HouseholdDialog
+          open={isDialogOpen}
+          isEdit={isEditDialog}
+          household={household}
+          onClose={handleDialogClose}
+          onSave={handleDialogSave}
+        />
       </Box>
     )
 };

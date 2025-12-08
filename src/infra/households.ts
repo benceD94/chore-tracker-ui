@@ -13,6 +13,17 @@ export async function createHousehold(userId: string, name: string) {
   return ref.id;
 }
 
+export async function updateHousehold(houseHoldId: string, newName: string) {
+  const householdRef = doc(
+    db,
+    Collection.Households,
+    houseHoldId,
+  );
+  return await updateDoc(householdRef, {
+    name: newName.trim(),
+  });
+}
+
 export async function addHouseholdMember(
   householdId: string,
   memberId: string

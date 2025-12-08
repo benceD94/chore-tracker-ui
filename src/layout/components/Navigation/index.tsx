@@ -24,7 +24,7 @@ export const Navigation: React.FC<NavigationProps> = ({isMobileOpen, onDrawerTog
       <Toolbar />
       <List>
         {navItems.map((item) => (
-          <Link to={item.path}>
+          <Link to={item.path} key={item.path}>
             <ListItemButton
               key={item.path}
               selected={location.pathname === item.path}
