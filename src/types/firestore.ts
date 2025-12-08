@@ -30,6 +30,7 @@ export type ChoreDoc = {
 };
 
 export type RegistryEntryDoc = {
+  id: string;
   choreRef: Ref<ChoreDoc>;
   userRef: Ref<UserDoc>;
   points: number;

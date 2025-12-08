@@ -1,6 +1,7 @@
 import { onAuthStateChanged, type User } from "firebase/auth";
 import React, { createContext, useContext, useEffect, useState } from "react";
 import { auth } from "../../utils/firebase";
+import { ensureUserProfile } from "../../infra/users";
 
 type AuthContextValue = {
   user: User | null;
@@ -25,6 +26,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     onAuthStateChanged(auth, (firebaseUser) => {
       setUser(firebaseUser);
+      if (firebaseUser) ensureUserProfile(firebaseUser)
       setLoading(false);
     }, (err) => {
       console.error('Auth state change error', err)

@@ -73,6 +73,7 @@ export const CategoriesPage: React.FC = () => {
       deleteCategory(household.id, categoryToChange.id)
         .then(() => {
           setCategoryToChange(undefined);
+          setIsLoading(false);
         })
         .finally(() => {
           setIsLoading(false);
