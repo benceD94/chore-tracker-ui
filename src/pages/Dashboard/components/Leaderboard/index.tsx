@@ -1,4 +1,5 @@
 import { Avatar, Box, Card, CardContent, Divider, Grid, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
+import { PieChart } from '@mui/x-charts/PieChart';
 import React, { useMemo } from "react";
 import type { RegistryEntryView } from "../../../../hooks/useRegistry";
 import { EmojiEvents } from "@mui/icons-material";
@@ -28,6 +29,19 @@ export const Leaderboard: React.FC<SummaryProps> = ({entries}) => {
             Leaderboard
           </Typography>
           <Divider sx={{ mb: 2 }} />
+          <PieChart
+            series={[
+              {
+                data: leaderboard.map((member) => ({
+                  id: member.id,
+                  value: member.points,
+                  label: member.name
+                }))
+              },
+            ]}
+            width={150}
+            height={150}
+          />
           <List disablePadding>
             {leaderboard.map((member, index) => (
               <ListItem
