@@ -28,6 +28,34 @@ export interface ChoreDialogProps {
   onSave: (selections: ChoreSelection[]) => void;
 }
 
+interface ChoreChipProps {
+  name: string;
+  selected: boolean;
+  count?: number;
+  onClick: () => void;
+}
+
+const ChoreChip: React.FC<ChoreChipProps> = ({ name, selected, count = 0, onClick }) => {
+  const icon = selected
+    ? count > 1
+      ? <Box component="span" sx={{ bgcolor: 'rgba(255,255,255,0.3)', px: 1, py: 0.25, borderRadius: 1, fontSize: '0.85rem', fontWeight: 'bold' }}>{count}x</Box>
+      : <Check sx={{ fontSize: 18 }} />
+    : <Add sx={{ fontSize: 18 }} />;
+
+  return (
+    <Chip
+      label={
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          {icon}
+          <span>{name}</span>
+        </Box>
+      }
+      onClick={onClick}
+      color={selected ? "success" : "primary"}
+    />
+  );
+};
+
 export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, onClose }) => {
   const { chores } = useSettingsProvider();
 
@@ -138,42 +166,11 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
               const count = selections.get(chore.id) || 0;
               return (
                 <Box key={chore.id}>
-                  <Chip
-                    label={
-                      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                        {count > 1 ? (
-                          <Box
-                            component="span"
-                            sx={{
-                              bgcolor: 'rgba(255,255,255,0.3)',
-                              px: 1,
-                              py: 0.25,
-                              borderRadius: 1,
-                              fontSize: '0.85rem',
-                              fontWeight: 'bold',
-                            }}
-                          >
-                            {count}x
-                          </Box>
-                        ) : (
-                          <Check sx={{ fontSize: 18 }} />
-                        )}
-                        <span>{chore.name}</span>
-                      </Box>
-                    }
+                  <ChoreChip
+                    name={chore.name}
+                    selected={true}
+                    count={count}
                     onClick={() => handleChoreClick(chore)}
-                    sx={{
-                      bgcolor: 'success.main',
-                      color: 'success.contrastText',
-                      '&:hover': {
-                        bgcolor: 'success.dark',
-                      },
-                      height: 'auto',
-                      py: 1,
-                      '& .MuiChip-label': {
-                        px: 1,
-                      },
-                    }}
                   />
                   <Typography
                     variant="body2"
@@ -195,26 +192,10 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
             {/* Unselected chores */}
             {unselectedChores.map((chore) => (
               <Box key={chore.id}>
-                <Chip
-                  label={
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                      <Add sx={{ fontSize: 18 }} />
-                      <span>{chore.name}</span>
-                    </Box>
-                  }
+                <ChoreChip
+                  name={chore.name}
+                  selected={false}
                   onClick={() => handleChoreClick(chore)}
-                  sx={{
-                    bgcolor: 'primary.main',
-                    color: 'primary.contrastText',
-                    '&:hover': {
-                      bgcolor: 'primary.dark',
-                    },
-                    height: 'auto',
-                    py: 1,
-                    '& .MuiChip-label': {
-                      px: 1,
-                    },
-                  }}
                 />
               </Box>
             ))}
