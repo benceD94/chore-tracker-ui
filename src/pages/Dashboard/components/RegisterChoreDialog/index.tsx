@@ -118,13 +118,18 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
     );
   }, [chores, searchQuery]);
 
-  // Separate selected and unselected chores
-  const selectedChores = useMemo(() => {
-    return filteredChores.filter(chore => selections.has(chore.id));
-  }, [filteredChores, selections]);
-
-  const unselectedChores = useMemo(() => {
-    return filteredChores.filter(chore => !selections.has(chore.id));
+  // Separate selected and unselected chores in a single loop
+  const sortedChores = useMemo(() => {
+    const selected: typeof filteredChores = [];
+    const unselected: typeof filteredChores = [];
+    filteredChores.forEach((chore) => {
+      if (selections.has(chore.id)) {
+        selected.push(chore);
+      } else {
+        unselected.push(chore);
+      }
+    });
+    return { selected, unselected };
   }, [filteredChores, selections]);
 
   useEffect(() => {
@@ -162,7 +167,7 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, maxHeight: 400, overflowY: 'auto' }}>
             {/* Selected chores first */}
-            {selectedChores.map((chore) => {
+            {sortedChores.selected.map((chore) => {
               const count = selections.get(chore.id) || 0;
               return (
                 <Box key={chore.id}>
@@ -190,7 +195,7 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
             })}
 
             {/* Unselected chores */}
-            {unselectedChores.map((chore) => (
+            {sortedChores.unselected.map((chore) => (
               <Box key={chore.id}>
                 <ChoreChip
                   name={chore.name}
