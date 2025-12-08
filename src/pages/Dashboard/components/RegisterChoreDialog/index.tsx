@@ -1,8 +1,7 @@
-import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, IconButton, InputLabel, List, ListItem, ListItemButton, ListItemIcon, ListItemText, MenuItem, Select, Stack, TextField, type SelectChangeEvent } from "@mui/material";
+import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, InputLabel, MenuItem, Select, Stack, type SelectChangeEvent } from "@mui/material";
 import { useEffect, useState } from "react";
 import type { ChoreDoc } from "../../../../types/firestore";
 import { useSettingsProvider } from "../../../../authentication/SettingsProvider";
-import { Delete } from "@mui/icons-material";
 
 export interface ChoreDialogProps {
   open: boolean;

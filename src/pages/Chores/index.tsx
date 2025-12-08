@@ -40,7 +40,7 @@ export const ChoresPage: React.FC = () => {
   const {household, chores} = useSettingsProvider();
   
   const [open, setOpen] = useState(false);
-  const [isLoading, setIsLoading] = useState(false);
+  const [_isLoading, setIsLoading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [choreToChange, setChoreToChange] = useState<ChoreDoc | undefined>(undefined);
   

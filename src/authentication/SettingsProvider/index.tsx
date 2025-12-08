@@ -12,10 +12,6 @@ type SettingsProviderContextValue = {
   chores: ChoreDoc[];
 };
 
-const defaultCallback = () => {
-  throw new Error('SettingsProviderContext not initialized.');
-};
-
 const SettingsProviderContext = createContext<SettingsProviderContextValue>({
   household: null,
   isLoaded: false,
