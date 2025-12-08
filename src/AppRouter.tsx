@@ -12,6 +12,7 @@ import { HouseholdPage } from "./pages/Households";
 import { RequireAuth } from "./authentication/RequireAuth";
 import { AppLayout } from "./layout/AppLayout";
 import { RootRedirect } from "./authentication/RootRedirect";
+import { ToastProvider } from "./components/ToastProvider";
 
 const router = createHashRouter(
   [
@@ -38,5 +39,5 @@ const router = createHashRouter(
 );
 
 export const AppRouter: React.FC = () => {
-  return <RouterProvider router={router} />;
+  return <ToastProvider><RouterProvider router={router} /></ToastProvider>;
 };

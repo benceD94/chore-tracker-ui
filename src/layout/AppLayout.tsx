@@ -6,7 +6,6 @@ import { UserAvatar } from "./components/UserAvatar";
 import { Navigation } from "./components/Navigation";
 import { DRAWER_WIDTH } from "./constant";
 import { SettingsProvider } from "../authentication/SettingsProvider";
-import { ToastProvider } from "../components/ToastProvider";
 
 export const AppLayout: React.FC = () => {
   const theme = useTheme();
@@ -57,11 +56,9 @@ export const AppLayout: React.FC = () => {
         }}
       >
         <Toolbar />
-        <ToastProvider>
-          <SettingsProvider>
-            <Outlet />
-          </SettingsProvider>
-        </ToastProvider>
+        <SettingsProvider>
+          <Outlet />
+        </SettingsProvider>
       </Box>
     </Box>
   );
