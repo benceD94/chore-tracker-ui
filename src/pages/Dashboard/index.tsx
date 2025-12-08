@@ -116,7 +116,7 @@ export const DashboardPage: React.FC = () => {
                     <ListItemText
                       primary={
                         <Typography>
-                          <strong>{chore.userName}</strong> completed{' '}
+                          <strong>{chore.userName.split(' ')[0]}</strong> completed{' '}
                           {chore.choreName} (+{chore.points})
                         </Typography>
                       }
