@@ -168,8 +168,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setInternalCategories(docs);
       },
       (err) => {
-        notify.error('Error fetching categories');
+        // Only log to console - empty collections are valid
         console.error("Error fetching categories:", err);
+        setInternalCategories([]);
       }
     );
 
@@ -186,8 +187,9 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
         setInternalChores(docs);
       },
       (err) => {
-        notify.error('Error fetching chores');
+        // Only log to console - empty collections are valid
         console.error("Error fetching chores:", err);
+        setInternalChores([]);
       }
     );
 

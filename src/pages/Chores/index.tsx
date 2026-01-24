@@ -19,12 +19,11 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { useSettingsProvider } from '../../authentication/SettingsProvider';
 import type { ChoreDoc } from '../../types/firestore';
 import { ChoreDialog } from './components/ChoreDialog';
-import { createChore, deleteChore, updateChore, loadDefaultChores } from '../../infra/chore';
+import { createChore, deleteChore, updateChore } from '../../infra/chore';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { useToast } from '../../components/ToastProvider';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '../../components/EmptyState';
-import { EmptyChoresState } from '../../components/EmptyState/EmptyChoresState';
 
 const categoryColors: Record<string, string> = {
   Kitchen: 'primary',
@@ -43,13 +42,12 @@ export type ChoreInput = {
 export const ChoresPage: React.FC = () => {
   const { notify } = useToast();
   const navigate = useNavigate();
-  const {household, chores, categories} = useSettingsProvider();
+  const {household, chores} = useSettingsProvider();
 
   const [open, setOpen] = useState(false);
   const [_isLoading, setIsLoading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [choreToChange, setChoreToChange] = useState<ChoreDoc | undefined>(undefined);
-  const [isLoadingDefaults, setIsLoadingDefaults] = useState(false);
   
   const handleOpen = (chore?: ChoreDoc) => {
     setOpen(true);
@@ -117,21 +115,6 @@ export const ChoresPage: React.FC = () => {
     }
   };
 
-  const handleLoadDefaults = async () => {
-    if (!household) return;
-
-    setIsLoadingDefaults(true);
-    try {
-      await loadDefaultChores(household.id);
-      notify.success('Default chores loaded');
-    } catch (err: any) {
-      notify.error('Failed to load default chores');
-      console.error('Failed to load default chores', err);
-    } finally {
-      setIsLoadingDefaults(false);
-    }
-  };
-
   if (!household) {
     return (
       <EmptyState
@@ -139,28 +122,6 @@ export const ChoresPage: React.FC = () => {
         description="You need to create or join a household before you can manage chores. Head over to the Household page to get started."
         onAction={() => navigate('/household')}
       />
-    );
-  }
-
-  if (chores.length === 0) {
-    return (
-      <>
-        <Box sx={{ maxWidth: 1200, margin: '0 auto', mb: 4 }}>
-          <Typography variant="h5">Chores</Typography>
-        </Box>
-        <EmptyChoresState
-          onCreateFromScratch={() => handleOpen()}
-          onLoadDefaults={handleLoadDefaults}
-          isLoading={isLoadingDefaults}
-          hasCategories={categories.length > 0}
-        />
-        <ChoreDialog
-          open={open}
-          choreToEdit={choreToChange}
-          onClose={handleClose}
-          onSave={handleSave}
-        />
-      </>
     );
   }
 

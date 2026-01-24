@@ -17,16 +17,20 @@ export const HouseholdPage: React.FC = () => {
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isEditDialog, setIsEditDialog] = useState<boolean>(false);
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState<boolean>(false);
+  const [isCreating, setIsCreating] = useState<boolean>(false);
 
   async function handleCreateHousehold(householdName: string) {
     if (!user) return;
 
+    setIsCreating(true);
     try {
       await createHousehold(user?.uid, householdName.trim());
-      notify.success('Household created');
+      notify.success('Household created with default categories and chores');
     } catch (err: any) {
       notify.error('Failed to create household');
       console.error("Failed to create household", err);
+    } finally {
+      setIsCreating(false);
     }
   }
 
@@ -81,11 +85,19 @@ export const HouseholdPage: React.FC = () => {
     }
   }
 
-  return !isLoaded ? <Skeleton variant="rounded" width={210} height={60} /> : 
-    (
+  if (!isLoaded || isCreating) {
+    return (
       <Box sx={{ maxWidth: 960, margin: '0 auto' }}>
-        {
-          household ? <>
+        <Skeleton variant="rounded" width="100%" height={60} sx={{ mb: 2 }} />
+        <Skeleton variant="rounded" width="100%" height={200} />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ maxWidth: 960, margin: '0 auto' }}>
+      {
+        household ? <>
             <Box sx={{ mb: 4 }}>
               <Typography variant="h5" gutterBottom>
                 Household
