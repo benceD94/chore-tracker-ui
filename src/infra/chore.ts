@@ -1,7 +1,8 @@
-import { addDoc, updateDoc, collection, doc, deleteDoc, serverTimestamp, writeBatch } from "firebase/firestore";
+import { addDoc, updateDoc, collection, doc, deleteDoc, serverTimestamp, writeBatch, getDocs } from "firebase/firestore";
 import { db } from "../utils/firebase";
 import { Collection } from "../enums/firebase";
 import type { ChoreInput } from "../pages/Chores";
+import { getDefaultChores } from "../mocks/defaultMocks";
 
 export async function createChore(householdId: string, value: ChoreInput) {
   const categoryRef = doc(
@@ -102,6 +103,60 @@ export async function registerMultipleChoresDone(options: {
         userRef,
         points: item.points,
         completedAt: serverTimestamp(),
+      });
+    }
+  });
+
+  await batch.commit();
+}
+
+export async function loadDefaultChores(householdId: string) {
+  // First, fetch all categories to create a name-to-ID mapping
+  const categoriesRef = collection(
+    db,
+    Collection.Households,
+    householdId,
+    Collection.Categories,
+  );
+
+  const categoriesSnapshot = await getDocs(categoriesRef);
+  const categoryMap = new Map<string, string>();
+
+  categoriesSnapshot.forEach((categoryDoc) => {
+    const categoryData = categoryDoc.data();
+    categoryMap.set(categoryData.name, categoryDoc.id);
+  });
+
+  // Now create chores with the correct category IDs
+  const batch = writeBatch(db);
+  const choresRef = collection(
+    db,
+    Collection.Households,
+    householdId,
+    Collection.Chores,
+  );
+
+  const defaultChores = getDefaultChores();
+
+  defaultChores.forEach((chore) => {
+    const categoryId = categoryMap.get(chore.categoryName);
+
+    // Only create chore if the category exists
+    if (categoryId) {
+      const categoryRef = doc(
+        db,
+        Collection.Households,
+        householdId,
+        Collection.Categories,
+        categoryId
+      );
+
+      const newChoreRef = doc(choresRef);
+      batch.set(newChoreRef, {
+        name: chore.name.trim(),
+        categoryRef,
+        categoryName: chore.categoryName.trim(),
+        points: chore.points,
       });
     }
   });

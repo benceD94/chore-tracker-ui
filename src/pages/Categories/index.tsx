@@ -14,21 +14,26 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { CategotyDialog } from './components/CategoryDialog';
+import { CategoryDialog } from './components/CategoryDialog';
 import { useSettingsProvider } from '../../authentication/SettingsProvider';
 import type { CategoryDoc } from '../../types/firestore';
-import { createCategory, deleteCategory, updateCategory } from '../../infra/categories';
+import { createCategory, deleteCategory, updateCategory, loadDefaultCategories } from '../../infra/categories';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { useToast } from '../../components/ToastProvider';
+import { useNavigate } from 'react-router';
+import { EmptyState } from '../../components/EmptyState';
+import { EmptyCategoriesState } from './components/EmptyCategoriesState/EmptyCategoriesState';
 
 export const CategoriesPage: React.FC = () => {
   const { notify } = useToast();
+  const navigate = useNavigate();
   const {household, categories} = useSettingsProvider();
 
   const [open, setOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [categoryToChange, setCategoryToChange] = useState<CategoryDoc | undefined>(undefined);
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingDefaults, setIsLoadingDefaults] = useState(false);
 
   const handleOpen = (category?: CategoryDoc) => {
     setOpen(true);
@@ -94,6 +99,47 @@ export const CategoriesPage: React.FC = () => {
     }
   };
 
+  const handleLoadDefaults = async () => {
+    if (!household) return;
+
+    setIsLoadingDefaults(true);
+    try {
+      await loadDefaultCategories(household.id);
+      notify.success('Default categories loaded');
+    } catch (err: any) {
+      notify.error('Failed to load default categories');
+      console.error('Failed to load default categories', err);
+    } finally {
+      setIsLoadingDefaults(false);
+    }
+  };
+
+  if (!household) {
+    return (
+      <EmptyState
+        title="No Household Found"
+        description="You need to create or join a household before you can manage categories. Head over to the Household page to get started."
+        onAction={() => navigate('/household')}
+      />
+    );
+  }
+
+  if (categories.length === 0 && !isLoading) {
+    return (
+      <>
+        <Box sx={{ maxWidth: 960, margin: '0 auto', mb: 4 }}>
+          <Typography variant="h5">Categories</Typography>
+        </Box>
+        <EmptyCategoriesState
+          onCreateFromScratch={() => handleOpen()}
+          onLoadDefaults={handleLoadDefaults}
+          isLoading={isLoadingDefaults}
+        />
+        <CategoryDialog open={open} onClose={handleClose} onSave={handleSave} categoryToEdit={categoryToChange} />
+      </>
+    );
+  }
+
   return (
     <Box sx={{ maxWidth: 960, margin: '0 auto' }}>
       <Box
@@ -145,7 +191,7 @@ export const CategoriesPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <CategotyDialog open={open} onClose={handleClose} onSave={handleSave} categoryToEdit={categoryToChange} />
+      <CategoryDialog open={open} onClose={handleClose} onSave={handleSave} categoryToEdit={categoryToChange} />
       <ConfirmationDialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog} onSave={handleSaveDeleteDialog} />
     </Box>
   );

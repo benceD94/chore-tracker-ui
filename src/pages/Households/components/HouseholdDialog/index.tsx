@@ -26,15 +26,23 @@ export const HouseholdDialog: React.FC<HouseholdDialogProps> = ({ onSave, onClos
   }, [open, isEdit, household])
 
   return (
-    <Dialog onClose={handleClose} open={open}>
-      <DialogTitle>Create new Household</DialogTitle>
+    <Dialog onClose={handleClose} open={open} maxWidth="sm" fullWidth>
+      <DialogTitle>{isEdit ? 'Edit Household' : 'Create New Household'}</DialogTitle>
       <DialogContent>
-        <TextField id="name" label="Name" variant="outlined" value={householdName} onChange={(e) => setHouseholdName(e.target.value)} />
+        <TextField
+          id="name"
+          label="Name"
+          variant="outlined"
+          fullWidth
+          value={householdName}
+          onChange={(e) => setHouseholdName(e.target.value)}
+          sx={{ mt: 1 }}
+        />
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose}>Cancel</Button>
-        <Button onClick={handleSave}>
-          Save
+        <Button onClick={handleSave} variant="contained" disabled={!householdName.trim()}>
+          {isEdit ? 'Save' : 'Create'}
         </Button>
       </DialogActions>
     </Dialog>
