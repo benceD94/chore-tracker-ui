@@ -9,7 +9,7 @@ export interface CategotyDialogProps {
   onSave: (value: string) => void;
 }
 
-export const CategotyDialog: React.FC<CategotyDialogProps> = ({ open, categoryToEdit, onSave, onClose }) => {
+export const CategoryDialog: React.FC<CategotyDialogProps> = ({ open, categoryToEdit, onSave, onClose }) => {
   const [categoryName, setCategoryName] = useState('');
 
   const handleClose = () => {

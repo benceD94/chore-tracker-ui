@@ -21,9 +21,12 @@ import { Summary } from './components/Summary';
 import { Leaderboard } from './components/Leaderboard';
 import { useToast } from '../../components/ToastProvider';
 import { RegisteredChoresList } from './components/RegisteredChoresList';
+import { useNavigate } from 'react-router';
+import { EmptyState } from '../../components/EmptyState';
 
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
+  const navigate = useNavigate();
   const {notify} = useToast();
   const {user} = useAuth();
   const {household} = useSettingsProvider();
@@ -65,6 +68,16 @@ export const DashboardPage: React.FC = () => {
   }
 
   const registerButton = (size: 'small' | 'medium' | 'large' = 'medium') => <Button variant="contained" size={size} startIcon={<Add />} onClick={() => setIsChoreDialogOpen(true)}>Register Chore</Button>;
+
+  if (!household) {
+    return (
+      <EmptyState
+        title="No Household Found"
+        description="You need to create or join a household before you can start tracking chores. Head over to the Household page to get started."
+        onAction={() => navigate('/household')}
+      />
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>

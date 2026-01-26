@@ -22,6 +22,8 @@ import { ChoreDialog } from './components/ChoreDialog';
 import { createChore, deleteChore, updateChore } from '../../infra/chore';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { useToast } from '../../components/ToastProvider';
+import { useNavigate } from 'react-router';
+import { EmptyState } from '../../components/EmptyState';
 
 const categoryColors: Record<string, string> = {
   Kitchen: 'primary',
@@ -39,8 +41,9 @@ export type ChoreInput = {
 
 export const ChoresPage: React.FC = () => {
   const { notify } = useToast();
+  const navigate = useNavigate();
   const {household, chores} = useSettingsProvider();
-  
+
   const [open, setOpen] = useState(false);
   const [_isLoading, setIsLoading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -111,6 +114,16 @@ export const ChoresPage: React.FC = () => {
         })
     }
   };
+
+  if (!household) {
+    return (
+      <EmptyState
+        title="No Household Found"
+        description="You need to create or join a household before you can manage chores. Head over to the Household page to get started."
+        onAction={() => navigate('/household')}
+      />
+    );
+  }
 
   return (
     <Box sx={{ maxWidth: 1200, margin: '0 auto' }}>

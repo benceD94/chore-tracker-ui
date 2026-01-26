@@ -2,8 +2,9 @@ import React, { useState } from "react";
 import { useAuth } from "../../authentication/AuthContext";
 import { Avatar, Box, Button, Card, CardContent, Chip, IconButton, Skeleton, Typography } from "@mui/material";
 import { HouseholdDialog } from "./components/HouseholdDialog";
+import { JoinHouseholdDialog } from "./components/JoinHouseholdDialog";
 import { addHouseholdMember, createHousehold, updateHousehold } from "../../infra/households";
-import { Edit, Home } from "@mui/icons-material";
+import { Edit, Home, Add, GroupAdd } from "@mui/icons-material";
 import { Members } from "./components/Members";
 import { useSettingsProvider } from "../../authentication/SettingsProvider";
 import { useToast } from "../../components/ToastProvider";
@@ -15,16 +16,21 @@ export const HouseholdPage: React.FC = () => {
 
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isEditDialog, setIsEditDialog] = useState<boolean>(false);
+  const [isJoinDialogOpen, setIsJoinDialogOpen] = useState<boolean>(false);
+  const [isCreating, setIsCreating] = useState<boolean>(false);
 
   async function handleCreateHousehold(householdName: string) {
     if (!user) return;
 
+    setIsCreating(true);
     try {
       await createHousehold(user?.uid, householdName.trim());
-      notify.success('Household created');
+      notify.success('Household created with default categories and chores');
     } catch (err: any) {
       notify.error('Failed to create household');
       console.error("Failed to create household", err);
+    } finally {
+      setIsCreating(false);
     }
   }
 
@@ -36,6 +42,19 @@ export const HouseholdPage: React.FC = () => {
     } catch (err: any) {
       notify.error('Failed to add user');
       console.error("Filed to add user", err);
+    }
+  }
+
+  async function handleJoinHousehold(householdId: string) {
+    if (!user) return;
+
+    try {
+      await addHouseholdMember(householdId, user.uid);
+      setIsJoinDialogOpen(false);
+      notify.success('Joined household');
+    } catch (err: any) {
+      notify.error('Failed to join household. Please check the household ID.');
+      console.error("Failed to join household", err);
     }
   }
 
@@ -66,11 +85,19 @@ export const HouseholdPage: React.FC = () => {
     }
   }
 
-  return !isLoaded ? <Skeleton variant="rounded" width={210} height={60} /> : 
-    (
+  if (!isLoaded || isCreating) {
+    return (
       <Box sx={{ maxWidth: 960, margin: '0 auto' }}>
-        {
-          household ? <>
+        <Skeleton variant="rounded" width="100%" height={60} sx={{ mb: 2 }} />
+        <Skeleton variant="rounded" width="100%" height={200} />
+      </Box>
+    );
+  }
+
+  return (
+    <Box sx={{ maxWidth: 960, margin: '0 auto' }}>
+      {
+        household ? <>
             <Box sx={{ mb: 4 }}>
               <Typography variant="h5" gutterBottom>
                 Household
@@ -121,7 +148,56 @@ export const HouseholdPage: React.FC = () => {
 
             <Members household={household} onAddMember={handleAddMember} />
           </> : <>
-            <Button variant="contained" size="small" onClick={handleAddHouseHoldClick}>Add Household</Button>
+            <Box sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              minHeight: '60vh',
+              textAlign: 'center',
+              px: 3
+            }}>
+              <Avatar
+                sx={{
+                  bgcolor: 'primary.main',
+                  width: 80,
+                  height: 80,
+                  mb: 3
+                }}
+              >
+                <Home sx={{ fontSize: 40 }} />
+              </Avatar>
+
+              <Typography variant="h5" gutterBottom>
+                Welcome to Chore Tracker
+              </Typography>
+
+              <Typography variant="body1" color="text.secondary" sx={{ mb: 4, maxWidth: 500 }}>
+                Get started by creating a new household or join an existing one with a household ID from another member.
+              </Typography>
+
+              <Box sx={{ display: 'flex', gap: 2, flexWrap: 'wrap', justifyContent: 'center' }}>
+                <Button
+                  variant="contained"
+                  size="large"
+                  startIcon={<Add />}
+                  onClick={handleAddHouseHoldClick}
+                  sx={{ minWidth: 180 }}
+                >
+                  Create Household
+                </Button>
+
+                <Button
+                  variant="outlined"
+                  size="large"
+                  startIcon={<GroupAdd />}
+                  onClick={() => setIsJoinDialogOpen(true)}
+                  sx={{ minWidth: 180 }}
+                >
+                  Join Household
+                </Button>
+              </Box>
+            </Box>
           </>
         }
         <HouseholdDialog
@@ -130,6 +206,11 @@ export const HouseholdPage: React.FC = () => {
           household={household}
           onClose={handleDialogClose}
           onSave={handleDialogSave}
+        />
+        <JoinHouseholdDialog
+          open={isJoinDialogOpen}
+          onClose={() => setIsJoinDialogOpen(false)}
+          onJoin={handleJoinHousehold}
         />
       </Box>
     )

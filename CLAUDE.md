@@ -15,6 +15,7 @@ The goal of this project is to help small households (friends / family) track ch
 - Firebase Authentication (Google Auth)
 - Firebase Firestore
 - Hosted on GitHub Pages
+- MaterialUI as the design library with minimal to no custom styling
 
 ### Backend (Current)
 - Firebase Firestore (NoSQL)

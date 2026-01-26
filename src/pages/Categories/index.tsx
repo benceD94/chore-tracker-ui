@@ -14,15 +14,18 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { CategotyDialog } from './components/CategoryDialog';
+import { CategoryDialog } from './components/CategoryDialog';
 import { useSettingsProvider } from '../../authentication/SettingsProvider';
 import type { CategoryDoc } from '../../types/firestore';
 import { createCategory, deleteCategory, updateCategory } from '../../infra/categories';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
 import { useToast } from '../../components/ToastProvider';
+import { useNavigate } from 'react-router';
+import { EmptyState } from '../../components/EmptyState';
 
 export const CategoriesPage: React.FC = () => {
   const { notify } = useToast();
+  const navigate = useNavigate();
   const {household, categories} = useSettingsProvider();
 
   const [open, setOpen] = useState(false);
@@ -94,6 +97,16 @@ export const CategoriesPage: React.FC = () => {
     }
   };
 
+  if (!household) {
+    return (
+      <EmptyState
+        title="No Household Found"
+        description="You need to create or join a household before you can manage categories. Head over to the Household page to get started."
+        onAction={() => navigate('/household')}
+      />
+    );
+  }
+
   return (
     <Box sx={{ maxWidth: 960, margin: '0 auto' }}>
       <Box
@@ -145,7 +158,7 @@ export const CategoriesPage: React.FC = () => {
         </CardContent>
       </Card>
 
-      <CategotyDialog open={open} onClose={handleClose} onSave={handleSave} categoryToEdit={categoryToChange} />
+      <CategoryDialog open={open} onClose={handleClose} onSave={handleSave} categoryToEdit={categoryToChange} />
       <ConfirmationDialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog} onSave={handleSaveDeleteDialog} />
     </Box>
   );

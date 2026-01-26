@@ -24,13 +24,13 @@ export const LoginPage: React.FC = () => {
 
   const handleLogin = async () => {
     try {
-      signInWithPopup(auth, provider);
+      await signInWithPopup(auth, provider);
+      navigate(from, { replace: true });
     } catch (error: any) {
       notify.error('Google sign-in error');
       console.error("Google sign-in error", error);
       alert(error.message || "Failed to sign in");
     }
-    navigate(from, { replace: true });
   };
 
   return (
