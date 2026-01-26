@@ -1,64 +1,30 @@
-import { addDoc, updateDoc, collection, doc, deleteDoc, serverTimestamp, writeBatch, getDocs } from "firebase/firestore";
-import { db } from "../utils/firebase";
-import { Collection } from "../enums/firebase";
+import { choresService } from "../api/services/choresService";
+import { registryService } from "../api/services/registryService";
 import type { ChoreInput } from "../pages/Chores";
-import { getDefaultChores } from "../mocks/defaultMocks";
 
 export async function createChore(householdId: string, value: ChoreInput) {
-  const categoryRef = doc(
-    db,
-    Collection.Households,
-    householdId,
-    Collection.Categories,
-    value.categoryId
-  );
-  const ref = await addDoc(collection(
-    db,
-    Collection.Households,
-    householdId,
-    Collection.Chores,
-  ), {
+  const chore = await choresService.createChore(householdId, {
     name: value.name.trim(),
-    categoryRef,
-    categoryName: value.categoryName.trim(),
-    points: value.points,
+    categoryId: value.categoryId,
+    description: value.categoryName, // Using categoryName as description temporarily
   });
-
-  return ref.id;
+  return chore.id;
 }
 
-export async function updateChore(householdId: string, choreId: string, value: ChoreInput) {
-  const categoryRef = doc(
-    db,
-    Collection.Households,
-    householdId,
-    Collection.Categories,
-    value.categoryId
-  );
-  const choreRef = doc(
-    db,
-    Collection.Households,
-    householdId,
-    Collection.Chores,
-    choreId,
-  );
-  return await updateDoc(choreRef, {
+export async function updateChore(
+  householdId: string,
+  choreId: string,
+  value: ChoreInput
+) {
+  await choresService.updateChore(householdId, choreId, {
     name: value.name.trim(),
-    categoryRef,
-    categoryName: value.categoryName.trim(),
-    points: value.points,
+    categoryId: value.categoryId,
+    description: value.categoryName, // Using categoryName as description temporarily
   });
 }
 
 export async function deleteChore(householdId: string, choreId: string) {
-  const choreRef = doc(
-    db,
-    Collection.Households,
-    householdId,
-    Collection.Chores,
-    choreId,
-  );
-  return await deleteDoc(choreRef);
+  await choresService.deleteChore(householdId, choreId);
 }
 
 export async function registerChoreDone(options: {
@@ -69,97 +35,28 @@ export async function registerChoreDone(options: {
 }) {
   const { householdId, choreId, userId, points } = options;
 
-  const registryCol = collection(db, Collection.Households, householdId, Collection.Registry);
-  const choreRef = doc(db, Collection.Households, householdId, Collection.Chores, choreId);
-  const userRef = doc(db, Collection.Users, userId);
-
-  await addDoc(registryCol, {
-    choreRef,
-    userRef,
-    points,
-    completedAt: serverTimestamp(),
+  await registryService.createRegistryEntry(householdId, {
+    choreId,
+    userId,
+    times: points, // Backend uses 'times' instead of 'points'
   });
 }
 
 export async function registerMultipleChoresDone(options: {
   householdId: string;
   userId: string;
-  items: { choreId: string; points: number; times?: number }[]; // times = how many times this chore was done
+  items: { choreId: string; points: number; times?: number }[];
 }) {
   const { householdId, userId, items } = options;
 
-  const registryColRef = collection(db, Collection.Households, householdId, Collection.Registry);
-  const userRef = doc(db, Collection.Users, userId);
-  const batch = writeBatch(db);
-
-  items.forEach((item) => {
+  const chores = items.flatMap((item) => {
     const times = item.times ?? 1;
-    const choreRef = doc(db, Collection.Households, householdId, Collection.Chores, item.choreId);
-
-    for (let i = 0; i < times; i++) {
-      const entryRef = doc(registryColRef);
-      batch.set(entryRef, {
-        choreRef,
-        userRef,
-        points: item.points,
-        completedAt: serverTimestamp(),
-      });
-    }
+    return Array.from({ length: times }, () => ({
+      choreId: item.choreId,
+      userId,
+      times: 1, 
+    }));
   });
 
-  await batch.commit();
-}
-
-export async function loadDefaultChores(householdId: string) {
-  // First, fetch all categories to create a name-to-ID mapping
-  const categoriesRef = collection(
-    db,
-    Collection.Households,
-    householdId,
-    Collection.Categories,
-  );
-
-  const categoriesSnapshot = await getDocs(categoriesRef);
-  const categoryMap = new Map<string, string>();
-
-  categoriesSnapshot.forEach((categoryDoc) => {
-    const categoryData = categoryDoc.data();
-    categoryMap.set(categoryData.name, categoryDoc.id);
-  });
-
-  // Now create chores with the correct category IDs
-  const batch = writeBatch(db);
-  const choresRef = collection(
-    db,
-    Collection.Households,
-    householdId,
-    Collection.Chores,
-  );
-
-  const defaultChores = getDefaultChores();
-
-  defaultChores.forEach((chore) => {
-    const categoryId = categoryMap.get(chore.categoryName);
-
-    // Only create chore if the category exists
-    if (categoryId) {
-      const categoryRef = doc(
-        db,
-        Collection.Households,
-        householdId,
-        Collection.Categories,
-        categoryId
-      );
-
-      const newChoreRef = doc(choresRef);
-      batch.set(newChoreRef, {
-        name: chore.name.trim(),
-        categoryRef,
-        categoryName: chore.categoryName.trim(),
-        points: chore.points,
-      });
-    }
-  });
-
-  await batch.commit();
+  await registryService.createBatchRegistry(householdId, { chores });
 }

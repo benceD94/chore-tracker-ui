@@ -91,7 +91,7 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
       if (chore) {
         choreSelections.push({
           choreId,
-          points: chore.points,
+          points: chore.points ?? 0,
           times,
         });
       }
@@ -104,7 +104,7 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
     selections.forEach((times, choreId) => {
       const chore = chores.find(c => c.id === choreId);
       if (chore) {
-        total += chore.points * times;
+        total += (chore.points ?? 0) * times;
       }
     });
     return total;

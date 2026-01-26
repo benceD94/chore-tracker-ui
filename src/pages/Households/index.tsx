@@ -24,9 +24,9 @@ export const HouseholdPage: React.FC = () => {
 
     setIsCreating(true);
     try {
-      await createHousehold(user?.uid, householdName.trim());
+      await createHousehold(householdName.trim());
       notify.success('Household created with default categories and chores');
-    } catch (err: any) {
+    } catch (err: unknown) {
       notify.error('Failed to create household');
       console.error("Failed to create household", err);
     } finally {
@@ -39,7 +39,7 @@ export const HouseholdPage: React.FC = () => {
 
     try {
       await addHouseholdMember(household.id, memberId);
-    } catch (err: any) {
+    } catch (err: unknown) {
       notify.error('Failed to add user');
       console.error("Filed to add user", err);
     }
@@ -52,7 +52,7 @@ export const HouseholdPage: React.FC = () => {
       await addHouseholdMember(householdId, user.uid);
       setIsJoinDialogOpen(false);
       notify.success('Joined household');
-    } catch (err: any) {
+    } catch (err: unknown) {
       notify.error('Failed to join household. Please check the household ID.');
       console.error("Failed to join household", err);
     }

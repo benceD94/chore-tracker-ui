@@ -16,13 +16,23 @@ import { RegisterChoreDialog, type ChoreSelection } from './components/RegisterC
 import { registerMultipleChoresDone } from '../../infra/chore';
 import { useSettingsProvider } from '../../authentication/SettingsProvider';
 import { useAuth } from '../../authentication/AuthContext';
-import { useRegistryView, RegistryDateFilter } from '../../hooks/useRegistry';
+import { useRegistryView } from '../../hooks/useRegistry';
+import type { RegistryDateFilter } from '../../hooks/useRegistry';
 import { Summary } from './components/Summary';
 import { Leaderboard } from './components/Leaderboard';
 import { useToast } from '../../components/ToastProvider';
 import { RegisteredChoresList } from './components/RegisteredChoresList';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '../../components/EmptyState';
+
+enum RegistryDateFilterEnum {
+  Today = 'today',
+  Yesterday = 'yesterday',
+  ThisWeek = 'thisWeek',
+  LastWeek = 'lastWeek',
+  ThisMonth = 'thisMonth',
+  All = 'all',
+}
 
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
@@ -32,7 +42,7 @@ export const DashboardPage: React.FC = () => {
   const {household} = useSettingsProvider();
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
-  const [filter, setFilter] = useState<RegistryDateFilter>(RegistryDateFilter.Today);
+  const [filter, setFilter] = useState<RegistryDateFilter>(RegistryDateFilterEnum.Today);
   const { entries: choresDone } = useRegistryView(household?.id || '', filter);
 
   const [isChoreDialogOpen, setIsChoreDialogOpen] = useState(false);
@@ -92,7 +102,7 @@ export const DashboardPage: React.FC = () => {
             value={filter}
             onChange={handleDateFilterChange}
           >
-            {Object.values(RegistryDateFilter).map((dateFilter) => <MenuItem value={dateFilter} key={dateFilter}>{dateFilter}</MenuItem>)}
+            {Object.values(RegistryDateFilterEnum).map((dateFilter) => <MenuItem value={dateFilter} key={dateFilter}>{dateFilter}</MenuItem>)}
           </Select>
           {!isMobile && registerButton('medium')}
         </Box>

@@ -1,13 +1,10 @@
-import { query, orderBy } from "firebase/firestore";
-import { useCollection } from "./useCollection";
-import type { ChoreDoc } from "../types/firestore";
-import { choresCol } from "../utils/firebaseRefs";
+import { useFetch } from "./useFetch";
+import { choresService } from "../api/services/choresService";
+import type { ChoreResponseDto } from "../api/types";
 
 export function useChores(householdId: string | null) {
-  const q =
-    householdId == null
-      ? null
-      : query(choresCol(householdId), orderBy("name", "asc"));
-
-  return useCollection<ChoreDoc>(q);
+  return useFetch<ChoreResponseDto[]>(
+    householdId ? () => choresService.getChores(householdId) : null,
+    [householdId]
+  );
 }

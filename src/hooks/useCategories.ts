@@ -1,13 +1,10 @@
-import { query, orderBy } from "firebase/firestore";
-import { useCollection } from "./useCollection";
-import type { CategoryDoc } from "../types/firestore";
-import { categoriesCol } from "../utils/firebaseRefs";
+import { useFetch } from "./useFetch";
+import { categoriesService } from "../api/services/categoriesService";
+import type { CategoryResponseDto } from "../api/types";
 
 export function useCategories(householdId: string | null) {
-  const q =
-    householdId == null
-      ? null
-      : query(categoriesCol(householdId), orderBy("name", "asc"));
-
-  return useCollection<CategoryDoc>(q);
+  return useFetch<CategoryResponseDto[]>(
+    householdId ? () => categoriesService.getCategories(householdId) : null,
+    [householdId]
+  );
 }

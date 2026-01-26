@@ -39,14 +39,14 @@ export const Members: React.FC<MembersProps> = ({ household, onAddMember }) => {
           <Typography variant="h6">Members</Typography>
           <Box>
             <Button sx={{mr: 2}} size="small" variant="outlined" onClick={handleOpenInviteDialog}>Invite</Button>
-            <Chip label={`${household?.memberIds.length} members`} size="small" />
+            <Chip label={`${household?.memberIds.length ?? 0} members`} size="small" />
           </Box>
         </Box>
 
         <Divider sx={{ mb: 2 }} />
 
         <List disablePadding>
-          {household.members.map((member) => (
+          {(household.memberDetails ?? []).map((member) => (
             <ListItem
               key={member.id}
               sx={{

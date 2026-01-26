@@ -18,7 +18,7 @@ const provider = new GoogleAuthProvider();
 export const LoginPage: React.FC = () => {
   const {notify} = useToast();
   const navigate = useNavigate();
-  const location = useLocation() as any;
+  const location = useLocation();
 
   const from = location.state?.from?.pathname || "/dashboard";
 
@@ -26,10 +26,9 @@ export const LoginPage: React.FC = () => {
     try {
       await signInWithPopup(auth, provider);
       navigate(from, { replace: true });
-    } catch (error: any) {
+    } catch (error: unknown) {
       notify.error('Google sign-in error');
       console.error("Google sign-in error", error);
-      alert(error.message || "Failed to sign in");
     }
   };
 

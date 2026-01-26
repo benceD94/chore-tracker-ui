@@ -45,9 +45,9 @@ export const ChoreDialog: React.FC<ChoreDialogProps> = ({ open, choreToEdit, onS
   useEffect(() => {
     if (choreToEdit) {
       setChoreName(choreToEdit.name);
-      setChorePoints(choreToEdit.points);
-      setCategoryName(choreToEdit.categoryName);
-      setCategoryId(choreToEdit.categoryRef.id);
+      setChorePoints(choreToEdit.points ?? 1);
+      setCategoryName(choreToEdit.categoryName ?? '');
+      setCategoryId(choreToEdit.categoryId ?? '');
     } else {
       setChoreName('');
       setChorePoints(1);

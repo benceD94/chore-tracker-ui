@@ -161,10 +161,10 @@ export const ChoresPage: React.FC = () => {
                 <TableCell>{chore.name}</TableCell>
                 <TableCell>
                   <Chip
-                    label={chore.categoryName}
+                    label={chore.categoryName ?? 'Unknown'}
                     size="small"
                     color={
-                      categoryColors[chore.categoryName] as
+                      categoryColors[chore.categoryName ?? 'Unknown'] as
                         | 'default'
                         | 'primary'
                         | 'secondary'

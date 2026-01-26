@@ -1,16 +1,23 @@
-import React, { createContext, useContext, useEffect, useState } from "react";
-import { db } from "../../utils/firebase";
-import type { CategoryDoc, ChoreDoc, HouseholdDoc, UserDoc } from "../../types/firestore";
-import { collection, doc, getDoc, onSnapshot, query, where } from "firebase/firestore";
+import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
+import type { HouseholdResponseDto, CategoryResponseDto, ChoreResponseDto, UserResponseDto } from "../../api/types";
 import { useAuth } from "../AuthContext";
-import { Collection } from "../../enums/firebase";
 import { useToast } from "../../components/ToastProvider";
+import { householdsService } from "../../api/services/householdsService";
+import { categoriesService } from "../../api/services/categoriesService";
+import { choresService } from "../../api/services/choresService";
+
+// Temporary type for household with members
+// TODO: Update when backend provides member details
+type HouseholdWithMembers = HouseholdResponseDto & {
+  memberDetails?: UserResponseDto[]; // Will be populated with user details
+};
 
 type SettingsProviderContextValue = {
   isLoaded: boolean;
-  household: HouseholdDoc | null;
-  categories: CategoryDoc[];
-  chores: ChoreDoc[];
+  household: HouseholdResponseDto | null;
+  categories: CategoryResponseDto[];
+  chores: ChoreResponseDto[];
+  refetch: () => Promise<void>;
 };
 
 const SettingsProviderContext = createContext<SettingsProviderContextValue>({
@@ -18,6 +25,7 @@ const SettingsProviderContext = createContext<SettingsProviderContextValue>({
   isLoaded: false,
   categories: [],
   chores: [],
+  refetch: async () => {},
 });
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -25,187 +33,70 @@ export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const { notify } = useToast();
 
   const [internalIsLoaded, setInternalIsLoaded] = useState(false);
-  const [internalHousehold, setInternalHousehold] = useState<HouseholdDoc | null>(null);
-  const [internalCategories, setInternalCategories] = useState<CategoryDoc[]>([]);
-  const [internalChores, setInternalChores] = useState<ChoreDoc[]>([]);
+  const [internalHousehold, setInternalHousehold] = useState<HouseholdWithMembers | null>(null);
+  const [internalCategories, setInternalCategories] = useState<CategoryResponseDto[]>([]);
+  const [internalChores, setInternalChores] = useState<ChoreResponseDto[]>([]);
 
-  // useEffect(() => {
-  //   const householdsRef = collection(db, Collection.Households);
-  //   const q = query(
-  //     householdsRef,
-  //     where("memberIds", "array-contains", user?.uid)
-  //   );
+  const loadData = useCallback(async () => {
+    if (!user?.uid) {
+      setInternalHousehold(null);
+      setInternalCategories([]);
+      setInternalChores([]);
+      setInternalIsLoaded(true);
+      return;
+    }
 
-  //   const unsubscribe = onSnapshot(
-  //     q,
-  //     (snapshot) => {
-  //       const docs: HouseholdDoc[] = snapshot.docs.map((docSnap) => {
-  //         const data = docSnap.data() as Omit<HouseholdDoc, "id">;
-  //         return {
-  //           id: docSnap.id,
-  //           ...data,
-  //         };
-  //       });
-  //       setInternalHousehold(docs[0]);
-  //       setInternalIsLoaded(true);
-  //     },
-  //     (err) => {
-  //       console.error("Error fetching households:", err);
-  //       setInternalIsLoaded(true);
-  //     }
-  //   );
+    try {
+      // Fetch households for the current user
+      const households = await householdsService.getHouseholds();
 
-  //   return () => unsubscribe();
-  // }, []);
-
-  useEffect(() => {
-  if (!user?.uid) {
-    // no logged-in user yet → nothing to load
-    return;
-  }
-
-  const householdsRef = collection(db, Collection.Households);
-  const q = query(
-    householdsRef,
-    where("memberIds", "array-contains", user.uid)
-  );
-
-  let cancelled = false;
-
-  const unsubscribe = onSnapshot(
-    q,
-    async (snapshot) => {
-      try {
-        const docs: HouseholdDoc[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data() as Omit<HouseholdDoc, "id">;
-          return {
-            id: docSnap.id,
-            ...data,
-          };
-        });
-
-        const first = docs[0];
-
-        if (!first) {
-          if (!cancelled) {
-            setInternalHousehold(null);
-            setInternalIsLoaded(true);
-          }
-          return;
-        }
-
-        // 🔽 load members from users/{uid}
-        const memberPromises = first.memberIds.map(async (uid) => {
-          const userRef = doc(db, Collection.Users, uid);
-          const snap = await getDoc(userRef);
-          if (!snap.exists()) return null;
-
-          const data = snap.data() as Omit<UserDoc, "id">;
-          return { id: snap.id, ...data } satisfies UserDoc;
-        });
-
-        const membersRaw = await Promise.all(memberPromises);
-        const members = membersRaw.filter(
-          (m): m is UserDoc => m !== null
-        );
-
-        if (!cancelled) {
-          const householdWithMembers: HouseholdDoc = {
-            ...first,
-            members,
-          };
-          setInternalHousehold(householdWithMembers);
-          setInternalIsLoaded(true);
-        }
-      } catch (err) {
-        notify.error('Error fetching households or members');
-        console.error("Error fetching households or members:", err);
-        if (!cancelled) {
-          setInternalIsLoaded(true);
-        }
+      if (households.length === 0) {
+        setInternalHousehold(null);
+        setInternalCategories([]);
+        setInternalChores([]);
+        setInternalIsLoaded(true);
+        return;
       }
-    },
-    (err) => {
-      notify.error('Error fetching households');
-      console.error("Error fetching households:", err);
+
+      // Use the first household
+      const household = households[0];
+      setInternalHousehold(household);
+
+      // Fetch categories and chores for this household in parallel
+      const [categories, chores] = await Promise.all([
+        categoriesService.getCategories(household.id),
+        choresService.getChores(household.id),
+      ]);
+
+      setInternalCategories(categories);
+      setInternalChores(chores);
+      setInternalIsLoaded(true);
+    } catch (err) {
+      notify.error('Error loading household data');
+      console.error("Error loading household data:", err);
       setInternalIsLoaded(true);
     }
-  );
+  }, [user?.uid, notify]);
 
-  return () => {
-    cancelled = true;
-    unsubscribe();
-  };
-}, [user?.uid]);
-
+  // Load data when user changes
   useEffect(() => {
-    if (!internalHousehold) return;
+    loadData();
+  }, [loadData]);
 
-    const categoriesRef = collection(
-      db,
-      Collection.Households,
-      internalHousehold.id,
-      Collection.Categories,
-    );
-
-    const choresRef = collection(
-      db,
-      Collection.Households,
-      internalHousehold.id,
-      Collection.Chores,
-    );
-
-    const unsubscribeCategories = onSnapshot(
-      categoriesRef,
-      (snapshot) => {
-        const docs: CategoryDoc[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data() as Omit<CategoryDoc, "id">;
-          return {
-            id: docSnap.id,
-            ...data,
-          };
-        });
-        setInternalCategories(docs);
-      },
-      (err) => {
-        // Only log to console - empty collections are valid
-        console.error("Error fetching categories:", err);
-        setInternalCategories([]);
-      }
-    );
-
-    const unsubscribeChores = onSnapshot(
-      choresRef,
-      (snapshot) => {
-        const docs: ChoreDoc[] = snapshot.docs.map((docSnap) => {
-          const data = docSnap.data() as Omit<ChoreDoc, "id">;
-          return {
-            id: docSnap.id,
-            ...data,
-          };
-        });
-        setInternalChores(docs);
-      },
-      (err) => {
-        // Only log to console - empty collections are valid
-        console.error("Error fetching chores:", err);
-        setInternalChores([]);
-      }
-    );
-
-    return () => {
-      unsubscribeCategories();
-      unsubscribeChores();
-    };
-  }, [internalHousehold]);
+  const refetch = useCallback(async () => {
+    await loadData();
+  }, [loadData]);
 
   return (
-    <SettingsProviderContext.Provider value={{
-      isLoaded: internalIsLoaded,
-      household: internalHousehold,
-      categories: internalCategories,
-      chores: internalChores,
-    }}>
+    <SettingsProviderContext.Provider
+      value={{
+        isLoaded: internalIsLoaded,
+        household: internalHousehold,
+        categories: internalCategories,
+        chores: internalChores,
+        refetch,
+      }}
+    >
       {children}
     </SettingsProviderContext.Provider>
   );

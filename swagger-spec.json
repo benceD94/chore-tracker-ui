@@ -1,0 +1,1556 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "description": "Exchange Firebase ID token from frontend for user information",
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Token validated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Invalid or expired token"
+          }
+        },
+        "summary": "Validate Firebase ID token",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/logout": {
+      "post": {
+        "description": "Sign out current user (client should remove token)",
+        "operationId": "AuthController_logout",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Logout successful"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Logout current user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/auth/me": {
+      "get": {
+        "description": "Returns information about the currently authenticated user",
+        "operationId": "AuthController_getCurrentUser",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "User information retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AuthResponseDto"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Not authenticated"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Get current authenticated user",
+        "tags": [
+          "auth"
+        ]
+      }
+    },
+    "/users/{uid}": {
+      "get": {
+        "description": "Retrieve user profile information by Firebase UID",
+        "operationId": "UsersController_findOne",
+        "parameters": [
+          {
+            "name": "uid",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "User found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - can only access own profile"
+          },
+          "404": {
+            "description": "User not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Get user profile by UID",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/users": {
+      "post": {
+        "description": "Create new user profile or update existing one (upsert)",
+        "operationId": "UsersController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUserDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "User created or updated",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UserResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - can only create/update own profile"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Create or update user profile",
+        "tags": [
+          "users"
+        ]
+      }
+    },
+    "/households": {
+      "get": {
+        "description": "Get all households where the current user is a member",
+        "operationId": "HouseholdsController_findAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Households retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/HouseholdResponseDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "List all households for current user",
+        "tags": [
+          "households"
+        ]
+      },
+      "post": {
+        "description": "Create a new household with the current user as the creator and first member",
+        "operationId": "HouseholdsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateHouseholdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Household created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdResponseDto"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Create new household",
+        "tags": [
+          "households"
+        ]
+      }
+    },
+    "/households/{householdId}": {
+      "get": {
+        "description": "Get household details with members list",
+        "operationId": "HouseholdsController_findOne",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Household found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Household not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Get specific household",
+        "tags": [
+          "households"
+        ]
+      },
+      "patch": {
+        "description": "Update the name of an existing household",
+        "operationId": "HouseholdsController_update",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateHouseholdDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Household updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Household not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Update household name",
+        "tags": [
+          "households"
+        ]
+      }
+    },
+    "/households/{householdId}/members": {
+      "post": {
+        "description": "Add a new member to an existing household",
+        "operationId": "HouseholdsController_addMember",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AddMemberDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Member added successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HouseholdResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Household not found"
+          },
+          "409": {
+            "description": "Conflict - user is already a member"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Add member to household",
+        "tags": [
+          "households"
+        ]
+      }
+    },
+    "/households/{householdId}/categories": {
+      "get": {
+        "description": "Get all categories for a household, sorted by name",
+        "operationId": "CategoriesController_findAll",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Categories retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/CategoryResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "List categories",
+        "tags": [
+          "categories"
+        ]
+      },
+      "post": {
+        "description": "Create a new category for the household",
+        "operationId": "CategoriesController_create",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Category created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Create category",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/households/{householdId}/categories/{id}": {
+      "get": {
+        "description": "Retrieve a specific category by ID",
+        "operationId": "CategoriesController_findOne",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Category found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Get single category",
+        "tags": [
+          "categories"
+        ]
+      },
+      "patch": {
+        "description": "Update the name of an existing category",
+        "operationId": "CategoriesController_update",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateCategoryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Category updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CategoryResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Update category",
+        "tags": [
+          "categories"
+        ]
+      },
+      "delete": {
+        "description": "Delete a category from the household",
+        "operationId": "CategoriesController_remove",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Category deleted successfully"
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Category not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Delete category",
+        "tags": [
+          "categories"
+        ]
+      }
+    },
+    "/households/{householdId}/chores": {
+      "get": {
+        "description": "Get all chores for a household, sorted by name",
+        "operationId": "ChoresController_findAll",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chores retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ChoreResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "List chores",
+        "tags": [
+          "chores"
+        ]
+      },
+      "post": {
+        "description": "Create a new chore for the household",
+        "operationId": "ChoresController_create",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateChoreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Chore created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChoreResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Create chore",
+        "tags": [
+          "chores"
+        ]
+      }
+    },
+    "/households/{householdId}/chores/{id}": {
+      "get": {
+        "description": "Retrieve a specific chore by ID",
+        "operationId": "ChoresController_findOne",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Chore found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChoreResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Chore not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Get single chore",
+        "tags": [
+          "chores"
+        ]
+      },
+      "patch": {
+        "description": "Update an existing chore",
+        "operationId": "ChoresController_update",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateChoreDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Chore updated successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ChoreResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Chore not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Update chore",
+        "tags": [
+          "chores"
+        ]
+      },
+      "delete": {
+        "description": "Delete a chore from the household",
+        "operationId": "ChoresController_remove",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Chore deleted successfully"
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          },
+          "404": {
+            "description": "Chore not found"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Delete chore",
+        "tags": [
+          "chores"
+        ]
+      }
+    },
+    "/households/{householdId}/registry": {
+      "get": {
+        "description": "Get chore completion registry entries with optional filtering by time period and user",
+        "operationId": "RegistryController_findAll",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "filter",
+            "required": false,
+            "in": "query",
+            "description": "Filter by time period",
+            "schema": {
+              "enum": [
+                "today",
+                "yesterday",
+                "thisWeek",
+                "lastWeek",
+                "thisMonth",
+                "all"
+              ],
+              "type": "string"
+            }
+          },
+          {
+            "name": "userId",
+            "required": false,
+            "in": "query",
+            "description": "Filter by user UID",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "description": "Maximum number of results (default: 50)",
+            "schema": {
+              "minimum": 1,
+              "default": 50,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Registry entries retrieved successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RegistryResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "List registry entries",
+        "tags": [
+          "registry"
+        ]
+      },
+      "post": {
+        "description": "Register a single chore completion",
+        "operationId": "RegistryController_create",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateRegistryEntryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Registry entry created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RegistryResponseDto"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Register chore completion",
+        "tags": [
+          "registry"
+        ]
+      }
+    },
+    "/households/{householdId}/registry/batch": {
+      "post": {
+        "description": "Register multiple chore completions in a single request",
+        "operationId": "RegistryController_createBatch",
+        "parameters": [
+          {
+            "name": "householdId",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BatchRegistryDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Batch registry entries created successfully",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RegistryResponseDto"
+                  }
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden - user is not a member of this household"
+          }
+        },
+        "security": [
+          {
+            "firebase-auth": []
+          }
+        ],
+        "summary": "Register multiple chore completions",
+        "tags": [
+          "registry"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "Chore Tracker API",
+    "description": "Firebase proxy API for chore tracking application",
+    "version": "1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "firebase-auth": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http",
+        "description": "Enter your Firebase ID token"
+      }
+    },
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "idToken": {
+            "type": "string",
+            "description": "Firebase ID token from the frontend",
+            "example": "eyJhbGciOiJSUzI1NiIsImtpZCI6..."
+          }
+        },
+        "required": [
+          "idToken"
+        ]
+      },
+      "AuthResponseDto": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "User unique identifier"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email address"
+          },
+          "emailVerified": {
+            "type": "boolean",
+            "description": "Whether the email has been verified"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "User display name"
+          },
+          "photoURL": {
+            "type": "string",
+            "description": "User photo URL"
+          },
+          "phoneNumber": {
+            "type": "string",
+            "description": "User phone number"
+          }
+        },
+        "required": [
+          "uid"
+        ]
+      },
+      "UserResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "User document ID"
+          },
+          "uid": {
+            "type": "string",
+            "description": "Firebase UID"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "User display name"
+          },
+          "photoURL": {
+            "type": "string",
+            "description": "User photo URL"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "uid",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateUserDto": {
+        "type": "object",
+        "properties": {
+          "uid": {
+            "type": "string",
+            "description": "Firebase UID"
+          },
+          "email": {
+            "type": "string",
+            "description": "User email"
+          },
+          "displayName": {
+            "type": "string",
+            "description": "User display name"
+          },
+          "photoURL": {
+            "type": "string",
+            "description": "User photo URL"
+          }
+        },
+        "required": [
+          "uid"
+        ]
+      },
+      "HouseholdResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Household document ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Household name"
+          },
+          "memberIds": {
+            "description": "Array of member UIDs",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdBy": {
+            "type": "string",
+            "description": "UID of the user who created the household"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "name",
+          "memberIds",
+          "createdBy",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateHouseholdDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Household name",
+            "example": "Smith Family"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateHouseholdDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Updated household name",
+            "example": "Updated Family Name"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "AddMemberDto": {
+        "type": "object",
+        "properties": {
+          "userId": {
+            "type": "string",
+            "description": "Firebase UID of the user to add to household",
+            "example": "abc123xyz"
+          }
+        },
+        "required": [
+          "userId"
+        ]
+      },
+      "CategoryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Category document ID"
+          },
+          "householdId": {
+            "type": "string",
+            "description": "Household ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Category name"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "householdId",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Category name",
+            "example": "Kitchen"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateCategoryDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Updated category name",
+            "example": "Kitchen & Dining"
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "ChoreResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Chore document ID"
+          },
+          "householdId": {
+            "type": "string",
+            "description": "Household ID"
+          },
+          "name": {
+            "type": "string",
+            "description": "Chore name"
+          },
+          "description": {
+            "type": "string",
+            "description": "Chore description"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Category ID"
+          },
+          "categoryName": {
+            "type": "string",
+            "description": "Category name (denormalized)"
+          },
+          "assignedTo": {
+            "description": "Array of user UIDs assigned to this chore",
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "householdId",
+          "name",
+          "createdAt",
+          "updatedAt"
+        ]
+      },
+      "CreateChoreDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Chore name",
+            "example": "Wash dishes"
+          },
+          "description": {
+            "type": "string",
+            "description": "Chore description",
+            "example": "Clean all dishes and put them away"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Category ID",
+            "example": "cat123"
+          },
+          "assignedTo": {
+            "description": "Array of user UIDs assigned to this chore",
+            "example": [
+              "user123",
+              "user456"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        },
+        "required": [
+          "name"
+        ]
+      },
+      "UpdateChoreDto": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "description": "Chore name",
+            "example": "Wash dishes"
+          },
+          "description": {
+            "type": "string",
+            "description": "Chore description",
+            "example": "Clean all dishes and put them away"
+          },
+          "categoryId": {
+            "type": "string",
+            "description": "Category ID",
+            "example": "cat123"
+          },
+          "assignedTo": {
+            "description": "Array of user UIDs assigned to this chore",
+            "example": [
+              "user123",
+              "user456"
+            ],
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          }
+        }
+      },
+      "RegistryResponseDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "description": "Registry entry document ID"
+          },
+          "householdId": {
+            "type": "string",
+            "description": "Household ID"
+          },
+          "choreId": {
+            "type": "string",
+            "description": "Chore ID"
+          },
+          "choreName": {
+            "type": "string",
+            "description": "Chore name (denormalized)"
+          },
+          "userId": {
+            "type": "string",
+            "description": "User UID who completed the chore"
+          },
+          "userName": {
+            "type": "string",
+            "description": "User display name (denormalized)"
+          },
+          "times": {
+            "type": "number",
+            "description": "Number of times the chore was completed"
+          },
+          "completedAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Completion timestamp"
+          },
+          "createdAt": {
+            "format": "date-time",
+            "type": "string",
+            "description": "Creation timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "householdId",
+          "choreId",
+          "choreName",
+          "userId",
+          "userName",
+          "times",
+          "completedAt",
+          "createdAt"
+        ]
+      },
+      "CreateRegistryEntryDto": {
+        "type": "object",
+        "properties": {
+          "choreId": {
+            "type": "string",
+            "description": "Chore ID",
+            "example": "chore123"
+          },
+          "userId": {
+            "type": "string",
+            "description": "User UID who completed the chore",
+            "example": "user123"
+          },
+          "times": {
+            "type": "number",
+            "description": "Number of times the chore was completed",
+            "default": 1,
+            "example": 1
+          }
+        },
+        "required": [
+          "choreId",
+          "userId"
+        ]
+      },
+      "BatchRegistryDto": {
+        "type": "object",
+        "properties": {
+          "chores": {
+            "description": "Array of chores to register",
+            "example": [
+              {
+                "choreId": "chore123",
+                "userId": "user123",
+                "times": 1
+              },
+              {
+                "choreId": "chore456",
+                "userId": "user123",
+                "times": 2
+              }
+            ],
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/CreateRegistryEntryDto"
+            }
+          }
+        },
+        "required": [
+          "chores"
+        ]
+      }
+    }
+  }
+}
