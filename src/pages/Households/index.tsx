@@ -1,61 +1,83 @@
 import React, { useState } from "react";
-import { useAuth } from "../../authentication/AuthContext";
+import { useAuth } from "../../authentication/AuthContext/hooks";
 import { Avatar, Box, Button, Card, CardContent, Chip, IconButton, Skeleton, Typography } from "@mui/material";
 import { HouseholdDialog } from "./components/HouseholdDialog";
 import { JoinHouseholdDialog } from "./components/JoinHouseholdDialog";
-import { addHouseholdMember, createHousehold, updateHousehold } from "../../infra/households";
+import {
+  useCreateHouseholdMutation,
+  useUpdateHouseholdMutation,
+  useAddHouseholdMemberMutation
+} from "../../hooks/mutations";
 import { Edit, Home, Add, GroupAdd } from "@mui/icons-material";
 import { Members } from "./components/Members";
-import { useSettingsProvider } from "../../authentication/SettingsProvider";
-import { useToast } from "../../components/ToastProvider";
+import { useSettingsProvider } from "../../authentication/SettingsProvider/hooks";
+import { useToast } from "../../components/ToastProvider/hooks";
 
 export const HouseholdPage: React.FC = () => {
   const { user } = useAuth();
   const { notify } = useToast();
   const { household, isLoaded } = useSettingsProvider();
 
+  const createHouseholdMutation = useCreateHouseholdMutation();
+  const updateHouseholdMutation = useUpdateHouseholdMutation();
+  const addHouseholdMemberMutation = useAddHouseholdMemberMutation();
+
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isEditDialog, setIsEditDialog] = useState<boolean>(false);
   const [isJoinDialogOpen, setIsJoinDialogOpen] = useState<boolean>(false);
-  const [isCreating, setIsCreating] = useState<boolean>(false);
 
-  async function handleCreateHousehold(householdName: string) {
+  const isCreating = createHouseholdMutation.isPending;
+
+  function handleCreateHousehold(householdName: string) {
     if (!user) return;
 
-    setIsCreating(true);
-    try {
-      await createHousehold(householdName.trim());
-      notify.success('Household created with default categories and chores');
-    } catch (err: unknown) {
-      notify.error('Failed to create household');
-      console.error("Failed to create household", err);
-    } finally {
-      setIsCreating(false);
-    }
+    createHouseholdMutation.mutate(
+      { name: householdName.trim() },
+      {
+        onSuccess: () => {
+          notify.success('Household created with default categories and chores');
+        },
+        onError: (err) => {
+          notify.error('Failed to create household');
+          console.error("Failed to create household", err);
+        },
+      }
+    );
   }
 
-  async function handleAddMember(memberId: string) {
+  function handleAddMember(memberId: string) {
     if (!household) return;
 
-    try {
-      await addHouseholdMember(household.id, memberId);
-    } catch (err: unknown) {
-      notify.error('Failed to add user');
-      console.error("Filed to add user", err);
-    }
+    addHouseholdMemberMutation.mutate(
+      { householdId: household.id, userId: memberId },
+      {
+        onSuccess: () => {
+          notify.success('Member added');
+        },
+        onError: (err) => {
+          notify.error('Failed to add user');
+          console.error("Failed to add user", err);
+        },
+      }
+    );
   }
 
-  async function handleJoinHousehold(householdId: string) {
+  function handleJoinHousehold(householdId: string) {
     if (!user) return;
 
-    try {
-      await addHouseholdMember(householdId, user.uid);
-      setIsJoinDialogOpen(false);
-      notify.success('Joined household');
-    } catch (err: unknown) {
-      notify.error('Failed to join household. Please check the household ID.');
-      console.error("Failed to join household", err);
-    }
+    addHouseholdMemberMutation.mutate(
+      { householdId, userId: user.uid },
+      {
+        onSuccess: () => {
+          setIsJoinDialogOpen(false);
+          notify.success('Joined household');
+        },
+        onError: (err) => {
+          notify.error('Failed to join household. Please check the household ID.');
+          console.error("Failed to join household", err);
+        },
+      }
+    );
   }
 
   const handleAddHouseHoldClick = () => {
@@ -73,14 +95,23 @@ export const HouseholdPage: React.FC = () => {
   }
 
   const handleDialogSave = (name: string) => {
-    setIsDialogOpen(false);
     if (isEditDialog && household) {
-      updateHousehold(household.id, name)
-        .then(() => {
-          setIsEditDialog(false);
-          notify.success('Household updated');
-        });
+      updateHouseholdMutation.mutate(
+        { id: household.id, data: { name } },
+        {
+          onSuccess: () => {
+            setIsDialogOpen(false);
+            setIsEditDialog(false);
+            notify.success('Household updated');
+          },
+          onError: (err) => {
+            notify.error('Failed to update household');
+            console.error("Failed to update household", err);
+          },
+        }
+      );
     } else {
+      setIsDialogOpen(false);
       handleCreateHousehold(name);
     }
   }

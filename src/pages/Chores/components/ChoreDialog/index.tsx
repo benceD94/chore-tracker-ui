@@ -1,8 +1,8 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, InputLabel, MenuItem, Select, TextField, type SelectChangeEvent } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { ChoreDoc } from "../../../../types/firestore";
 import type { ChoreInput } from "../..";
-import { useSettingsProvider } from "../../../../authentication/SettingsProvider";
+import { useSettingsProvider } from "../../../../authentication/SettingsProvider/hooks";
 
 export interface ChoreDialogProps {
   open: boolean;
@@ -13,11 +13,11 @@ export interface ChoreDialogProps {
 
 export const ChoreDialog: React.FC<ChoreDialogProps> = ({ open, choreToEdit, onSave, onClose }) => {
   const {categories} = useSettingsProvider();
-  
-  const [choreName, setChoreName] = useState('');
-  const [chorePoints, setChorePoints] = useState(1);
-  const [categoryId, setCategoryId] = useState('');
-  const [categoryName, setCategoryName] = useState('');
+
+  const [choreName, setChoreName] = useState(choreToEdit?.name || '');
+  const [chorePoints, setChorePoints] = useState(choreToEdit?.points ?? 1);
+  const [categoryId, setCategoryId] = useState(choreToEdit?.categoryId ?? '');
+  const [categoryName, setCategoryName] = useState(choreToEdit?.categoryName ?? '');
 
   const handleCategorySelect = (event: SelectChangeEvent) => {
     const selectedCategoryId = event.target.value;
@@ -42,22 +42,14 @@ export const ChoreDialog: React.FC<ChoreDialogProps> = ({ open, choreToEdit, onS
     });
   }
 
-  useEffect(() => {
-    if (choreToEdit) {
-      setChoreName(choreToEdit.name);
-      setChorePoints(choreToEdit.points ?? 1);
-      setCategoryName(choreToEdit.categoryName ?? '');
-      setCategoryId(choreToEdit.categoryId ?? '');
-    } else {
-      setChoreName('');
-      setChorePoints(1);
-      setCategoryName('');
-      setCategoryId('');
-    }
-  }, [open, choreToEdit])
-
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      key={choreToEdit?.id || 'new'}
+    >
       <DialogTitle>Add chore</DialogTitle>
       <DialogContent>
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pt: 2 }}>

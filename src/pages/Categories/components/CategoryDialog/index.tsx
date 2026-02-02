@@ -1,5 +1,5 @@
 import { Box, Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { CategoryDoc } from "../../../../types/firestore";
 
 export interface CategotyDialogProps {
@@ -10,22 +10,24 @@ export interface CategotyDialogProps {
 }
 
 export const CategoryDialog: React.FC<CategotyDialogProps> = ({ open, categoryToEdit, onSave, onClose }) => {
-  const [categoryName, setCategoryName] = useState('');
+  const [categoryName, setCategoryName] = useState(categoryToEdit?.name || '');
 
   const handleClose = () => {
     onClose();
   };
-  
+
   const handleSave = () => {
     onSave(categoryName);
   }
 
-  useEffect(() => {
-    setCategoryName(categoryToEdit ? categoryToEdit.name : '')
-  }, [open, categoryToEdit])
-
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      key={categoryToEdit?.id || 'new'}
+    >
       <DialogTitle>Add category</DialogTitle>
       <DialogContent>
         <Box sx={{ pt: 2 }}>

@@ -1,105 +1,59 @@
-import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import type { HouseholdResponseDto, CategoryResponseDto, ChoreResponseDto, UserResponseDto } from "../../api/types";
-import { useAuth } from "../AuthContext";
-import { useToast } from "../../components/ToastProvider";
-import { householdsService } from "../../api/services/householdsService";
-import { categoriesService } from "../../api/services/categoriesService";
-import { choresService } from "../../api/services/choresService";
-
-// Temporary type for household with members
-// TODO: Update when backend provides member details
-type HouseholdWithMembers = HouseholdResponseDto & {
-  memberDetails?: UserResponseDto[]; // Will be populated with user details
-};
-
-type SettingsProviderContextValue = {
-  isLoaded: boolean;
-  household: HouseholdResponseDto | null;
-  categories: CategoryResponseDto[];
-  chores: ChoreResponseDto[];
-  refetch: () => Promise<void>;
-};
-
-const SettingsProviderContext = createContext<SettingsProviderContextValue>({
-  household: null,
-  isLoaded: false,
-  categories: [],
-  chores: [],
-  refetch: async () => {},
-});
+import React, { useMemo, useCallback } from "react";
+import { useHouseholdsQuery } from "../../hooks/queries/useHouseholdsQuery";
+import { useCategoriesQuery } from "../../hooks/queries/useCategoriesQuery";
+import { useChoresQuery } from "../../hooks/queries/useChoresQuery";
+import { SettingsProviderContext } from "./context";
 
 export const SettingsProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
-  const { notify } = useToast();
+  // Fetch households using react-query
+  const {
+    data: households,
+    isLoading: householdsLoading,
+    refetch: refetchHouseholds
+  } = useHouseholdsQuery();
 
-  const [internalIsLoaded, setInternalIsLoaded] = useState(false);
-  const [internalHousehold, setInternalHousehold] = useState<HouseholdWithMembers | null>(null);
-  const [internalCategories, setInternalCategories] = useState<CategoryResponseDto[]>([]);
-  const [internalChores, setInternalChores] = useState<ChoreResponseDto[]>([]);
+  // Get first household (or null)
+  const household = useMemo(() => {
+    if (!households || households.length === 0) return null;
+    return households[0];
+  }, [households]);
 
-  const loadData = useCallback(async () => {
-    if (!user?.uid) {
-      setInternalHousehold(null);
-      setInternalCategories([]);
-      setInternalChores([]);
-      setInternalIsLoaded(true);
-      return;
-    }
+  // Fetch categories and chores for the selected household
+  const {
+    data: categories = [],
+    isLoading: categoriesLoading,
+    refetch: refetchCategories
+  } = useCategoriesQuery(household?.id || null);
 
-    try {
-      // Fetch households for the current user
-      const households = await householdsService.getHouseholds();
+  const {
+    data: chores = [],
+    isLoading: choresLoading,
+    refetch: refetchChores
+  } = useChoresQuery(household?.id || null);
 
-      if (households.length === 0) {
-        setInternalHousehold(null);
-        setInternalCategories([]);
-        setInternalChores([]);
-        setInternalIsLoaded(true);
-        return;
-      }
+  // Determine if all data is loaded
+  const isLoaded = !householdsLoading && !categoriesLoading && !choresLoading;
 
-      // Use the first household
-      const household = households[0];
-      setInternalHousehold(household);
-
-      // Fetch categories and chores for this household in parallel
-      const [categories, chores] = await Promise.all([
-        categoriesService.getCategories(household.id),
-        choresService.getChores(household.id),
-      ]);
-
-      setInternalCategories(categories);
-      setInternalChores(chores);
-      setInternalIsLoaded(true);
-    } catch (err) {
-      notify.error('Error loading household data');
-      console.error("Error loading household data:", err);
-      setInternalIsLoaded(true);
-    }
-  }, [user?.uid, notify]);
-
-  // Load data when user changes
-  useEffect(() => {
-    loadData();
-  }, [loadData]);
-
+  // Provide manual refetch capability
   const refetch = useCallback(async () => {
-    await loadData();
-  }, [loadData]);
+    await Promise.all([
+      refetchHouseholds(),
+      refetchCategories(),
+      refetchChores(),
+    ]);
+  }, [refetchHouseholds, refetchCategories, refetchChores]);
+
+  const value = useMemo(() => ({
+    isLoaded,
+    household,
+    categories,
+    chores,
+    refetch,
+  }), [isLoaded, household, categories, chores, refetch]);
 
   return (
-    <SettingsProviderContext.Provider
-      value={{
-        isLoaded: internalIsLoaded,
-        household: internalHousehold,
-        categories: internalCategories,
-        chores: internalChores,
-        refetch,
-      }}
-    >
+    <SettingsProviderContext.Provider value={value}>
       {children}
     </SettingsProviderContext.Provider>
   );
 };
-
-export const useSettingsProvider = () => useContext(SettingsProviderContext);

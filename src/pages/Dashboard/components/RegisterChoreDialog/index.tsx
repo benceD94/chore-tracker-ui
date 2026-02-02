@@ -12,9 +12,9 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Add, Check, Search } from "@mui/icons-material";
-import { useEffect, useState, useMemo } from "react";
+import { useState, useMemo } from "react";
 import type { ChoreDoc } from "../../../../types/firestore";
-import { useSettingsProvider } from "../../../../authentication/SettingsProvider";
+import { useSettingsProvider } from "../../../../authentication/SettingsProvider/hooks";
 
 export interface ChoreSelection {
   choreId: string;
@@ -132,13 +132,14 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
     return { selected, unselected };
   }, [filteredChores, selections]);
 
-  useEffect(() => {
-    setSelections(new Map());
-    setSearchQuery("");
-  }, [open]);
-
   return (
-    <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
+    <Dialog
+      open={open}
+      onClose={handleClose}
+      maxWidth="sm"
+      fullWidth
+      key={String(open)}
+    >
       <DialogTitle>
         <Stack flexDirection="row" justifyContent="space-between" alignItems="center">
           <span>What chores have you done today?</span>

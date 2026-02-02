@@ -1,6 +1,6 @@
 import { Avatar, Card, CardContent, Divider, Grid, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
 import React, { useMemo } from "react";
-import type { RegistryEntryView } from "../../../../hooks/useRegistry";
+import type { RegistryEntryView } from "../../../../hooks/queries/useRegistryQuery";
 
 type SummaryProps = {
   choresDone: RegistryEntryView[];
