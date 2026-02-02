@@ -14,13 +14,10 @@ import {
 import { Add } from '@mui/icons-material';
 import { RegisterChoreDialog, type ChoreSelection } from './components/RegisterChoreDialog';
 import { useCreateBatchRegistryMutation } from '../../hooks/mutations';
-// import { useSettingsProvider } from '../../authentication/SettingsProvider';
-// import { useAuth } from '../../authentication/AuthContext';
 import { useRegistryViewQuery } from '../../hooks/queries';
 import type { RegistryDateFilter } from '../../api/types';
 import { Summary } from './components/Summary';
 import { Leaderboard } from './components/Leaderboard';
-// import { useToast } from '../../components/ToastProvider';
 import { RegisteredChoresList } from './components/RegisteredChoresList';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '../../components/EmptyState';
