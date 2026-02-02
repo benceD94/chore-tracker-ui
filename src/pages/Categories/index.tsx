@@ -15,11 +15,15 @@ import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { CategoryDialog } from './components/CategoryDialog';
-import { useSettingsProvider } from '../../authentication/SettingsProvider';
-import type { CategoryDoc } from '../../types/firestore';
-import { createCategory, deleteCategory, updateCategory } from '../../infra/categories';
+import { useSettingsProvider } from '../../authentication/SettingsProvider/hooks';
+import type { CategoryResponseDto } from '../../api/types';
+import {
+  useCreateCategoryMutation,
+  useUpdateCategoryMutation,
+  useDeleteCategoryMutation
+} from '../../hooks/mutations';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
-import { useToast } from '../../components/ToastProvider';
+import { useToast } from '../../components/ToastProvider/hooks';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '../../components/EmptyState';
 
@@ -28,12 +32,17 @@ export const CategoriesPage: React.FC = () => {
   const navigate = useNavigate();
   const {household, categories} = useSettingsProvider();
 
+  const createCategoryMutation = useCreateCategoryMutation(household?.id || '');
+  const updateCategoryMutation = useUpdateCategoryMutation(household?.id || '');
+  const deleteCategoryMutation = useDeleteCategoryMutation(household?.id || '');
+
   const [open, setOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [categoryToChange, setCategoryToChange] = useState<CategoryDoc | undefined>(undefined);
-  const [isLoading, setIsLoading] = useState(false);
+  const [categoryToChange, setCategoryToChange] = useState<CategoryResponseDto | undefined>(undefined);
 
-  const handleOpen = (category?: CategoryDoc) => {
+  const isLoading = createCategoryMutation.isPending || updateCategoryMutation.isPending || deleteCategoryMutation.isPending;
+
+  const handleOpen = (category?: CategoryResponseDto) => {
     setOpen(true);
     if (category) setCategoryToChange(category);
   };
@@ -44,34 +53,39 @@ export const CategoriesPage: React.FC = () => {
   };
 
   const handleSave = (name: string) => {
-    handleClose();
-    setIsLoading(true);
-    if (household) {
-      if (categoryToChange) {
-        updateCategory(household.id, categoryToChange.id, name)
-          .then(() => {
-            setCategoryToChange(undefined);
+    if (!household) return;
+
+    if (categoryToChange) {
+      updateCategoryMutation.mutate(
+        { id: categoryToChange.id, data: { name } },
+        {
+          onSuccess: () => {
             notify.success('Category updated');
-          })
-          .catch(() => {
+            handleClose();
+            setCategoryToChange(undefined);
+          },
+          onError: () => {
             notify.error('Category update failed');
-          })
-          .finally(() => {
-            setIsLoading(false);
-          })
-      } else {
-        createCategory(household.id, name)
-          .then(() => {
+          },
+        }
+      );
+    } else {
+      createCategoryMutation.mutate(
+        { name },
+        {
+          onSuccess: () => {
             notify.success('Category created');
-          })
-          .catch(() => {
+            handleClose();
+          },
+          onError: () => {
             notify.error('Category creation failed');
-          });
-      }
+          },
+        }
+      );
     }
   };
 
-  const handleOpenDeleteDialog = (category: CategoryDoc) => {
+  const handleOpenDeleteDialog = (category: CategoryResponseDto) => {
     setIsDeleteDialogOpen(true);
     setCategoryToChange(category);
   };
@@ -82,19 +96,18 @@ export const CategoriesPage: React.FC = () => {
   };
 
   const handleSaveDeleteDialog = () => {
-    handleCloseDeleteDialog();
-    setIsLoading(true);
-    if (household && categoryToChange) {
-      deleteCategory(household.id, categoryToChange.id)
-        .then(() => {
-          setCategoryToChange(undefined);
-          setIsLoading(false);
-          notify.success('Category deleted');
-        })
-        .catch(() => {
-          notify.error('Category delete failed');
-        })
-    }
+    if (!household || !categoryToChange) return;
+
+    deleteCategoryMutation.mutate(categoryToChange.id, {
+      onSuccess: () => {
+        notify.success('Category deleted');
+        handleCloseDeleteDialog();
+        setCategoryToChange(undefined);
+      },
+      onError: () => {
+        notify.error('Category delete failed');
+      },
+    });
   };
 
   if (!household) {

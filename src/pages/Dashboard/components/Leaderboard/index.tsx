@@ -1,7 +1,7 @@
 import { Avatar, Box, Card, CardContent, Divider, Grid, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
 import { PieChart } from '@mui/x-charts/PieChart';
 import React, { useMemo } from "react";
-import type { RegistryEntryView } from "../../../../hooks/useRegistry";
+import type { RegistryEntryView } from "../../../../hooks/queries/useRegistryQuery";
 import { EmojiEvents } from "@mui/icons-material";
 import { getUserMap } from "../../../../utils/registryHelper";
 

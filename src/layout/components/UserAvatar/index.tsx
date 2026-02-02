@@ -1,6 +1,6 @@
 import { Avatar, IconButton, Menu, MenuItem } from "@mui/material";
 import React from "react";
-import { useAuth } from "../../../authentication/AuthContext";
+import { useAuth } from "../../../authentication/AuthContext/hooks";
 
 export const UserAvatar: React.FC = () => {
   const { user, logout } = useAuth();

@@ -16,12 +16,16 @@ import {
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { useSettingsProvider } from '../../authentication/SettingsProvider';
-import type { ChoreDoc } from '../../types/firestore';
+import { useSettingsProvider } from '../../authentication/SettingsProvider/hooks';
+import type { ChoreResponseDto } from '../../api/types';
 import { ChoreDialog } from './components/ChoreDialog';
-import { createChore, deleteChore, updateChore } from '../../infra/chore';
+import {
+  useCreateChoreMutation,
+  useUpdateChoreMutation,
+  useDeleteChoreMutation
+} from '../../hooks/mutations';
 import { ConfirmationDialog } from '../../components/ConfirmationDialog';
-import { useToast } from '../../components/ToastProvider';
+import { useToast } from '../../components/ToastProvider/hooks';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '../../components/EmptyState';
 
@@ -44,12 +48,15 @@ export const ChoresPage: React.FC = () => {
   const navigate = useNavigate();
   const {household, chores} = useSettingsProvider();
 
+  const createChoreMutation = useCreateChoreMutation(household?.id || '');
+  const updateChoreMutation = useUpdateChoreMutation(household?.id || '');
+  const deleteChoreMutation = useDeleteChoreMutation(household?.id || '');
+
   const [open, setOpen] = useState(false);
-  const [_isLoading, setIsLoading] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
-  const [choreToChange, setChoreToChange] = useState<ChoreDoc | undefined>(undefined);
+  const [choreToChange, setChoreToChange] = useState<ChoreResponseDto | undefined>(undefined);
   
-  const handleOpen = (chore?: ChoreDoc) => {
+  const handleOpen = (chore?: ChoreResponseDto) => {
     setOpen(true);
     if (chore) setChoreToChange(chore);
   };
@@ -60,34 +67,52 @@ export const ChoresPage: React.FC = () => {
   };
 
   const handleSave = (newChore: ChoreInput) => {
-    handleClose();
-    setIsLoading(true);
-    if (household) {
-      if (choreToChange) {
-        updateChore(household.id, choreToChange.id, newChore)
-          .then(() => {
-            setChoreToChange(undefined);
+    if (!household) return;
+
+    if (choreToChange) {
+      updateChoreMutation.mutate(
+        {
+          id: choreToChange.id,
+          data: {
+            name: newChore.name,
+            categoryId: newChore.categoryId,
+            points: newChore.points,
+            description: newChore.categoryName, // Temporary: categoryName stored in description
+          }
+        },
+        {
+          onSuccess: () => {
             notify.success('Chore updated');
-          })
-          .catch(() => {
+            handleClose();
+            setChoreToChange(undefined);
+          },
+          onError: () => {
             notify.error('Chore update failed');
-          })
-          .finally(() => {
-            setIsLoading(false);
-          })
-      } else {
-        createChore(household.id, newChore)
-          .then(() => {
+          },
+        }
+      );
+    } else {
+      createChoreMutation.mutate(
+        {
+          name: newChore.name,
+          categoryId: newChore.categoryId,
+          points: newChore.points,
+          description: newChore.categoryName, // Temporary: categoryName stored in description
+        },
+        {
+          onSuccess: () => {
             notify.success('Chore created');
-          })
-          .catch(() => {
+            handleClose();
+          },
+          onError: () => {
             notify.error('Chore creation failed');
-          })
-      }
+          },
+        }
+      );
     }
   };
 
-  const handleOpenDeleteDialog = (chore: ChoreDoc) => {
+  const handleOpenDeleteDialog = (chore: ChoreResponseDto) => {
     setIsDeleteDialogOpen(true);
     setChoreToChange(chore);
   };
@@ -98,21 +123,18 @@ export const ChoresPage: React.FC = () => {
   };
 
   const handleSaveDeleteDialog = () => {
-    handleCloseDeleteDialog();
-    setIsLoading(true);
-    if (household && choreToChange) {
-      deleteChore(household.id, choreToChange.id)
-        .then(() => {
-          setChoreToChange(undefined);
-          notify.success('Chore deleted');
-        })
-        .catch(() => {
-          notify.error('Chore deletion failed');
-        })
-        .finally(() => {
-          setIsLoading(false);
-        })
-    }
+    if (!household || !choreToChange) return;
+
+    deleteChoreMutation.mutate(choreToChange.id, {
+      onSuccess: () => {
+        notify.success('Chore deleted');
+        handleCloseDeleteDialog();
+        setChoreToChange(undefined);
+      },
+      onError: () => {
+        notify.error('Chore deletion failed');
+      },
+    });
   };
 
   if (!household) {

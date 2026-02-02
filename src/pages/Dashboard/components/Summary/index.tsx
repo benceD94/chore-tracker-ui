@@ -1,7 +1,7 @@
 import { Box, Card, CardContent, Grid, Typography } from "@mui/material";
 import React, { useMemo } from "react";
-import type { RegistryEntryView } from "../../../../hooks/useRegistry";
-import { useAuth } from "../../../../authentication/AuthContext";
+import type { RegistryEntryView } from "../../../../hooks/queries/useRegistryQuery";
+import { useAuth } from "../../../../authentication/AuthContext/hooks";
 import { EmojiEvents, Group, TrendingUp } from "@mui/icons-material";
 import { getUserMap } from "../../../../utils/registryHelper";
 

@@ -1,29 +1,8 @@
 import { onAuthStateChanged, type User } from "firebase/auth";
-import React, { createContext, useContext, useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { auth } from "../../utils/firebase";
 import { authService } from "../../api/services/authService";
-
-type AuthContextValue = {
-  user: User | null;
-  loading: boolean;
-  logout: () => void;
-  getIdToken: () => Promise<string | null>;
-};
-
-const defaultCallback = () => {
-  throw new Error('AuthContext not initialized.');
-};
-
-const defaultGetIdToken = async () => {
-  throw new Error('AuthContext not initialized.');
-};
-
-const AuthContext = createContext<AuthContextValue>({
-  user: null,
-  loading: true,
-  logout: defaultCallback,
-  getIdToken: defaultGetIdToken,
-});
+import { AuthContext } from "./context";
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
@@ -85,5 +64,3 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     </AuthContext.Provider>
   );
 };
-
-export const useAuth = () => useContext(AuthContext);

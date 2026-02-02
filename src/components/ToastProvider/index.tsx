@@ -1,10 +1,9 @@
-import {createContext, type FC, type PropsWithChildren, useContext} from 'react';
+import { type FC, type PropsWithChildren} from 'react';
 import toast, {Toaster, ToastBar, type Toast} from 'react-hot-toast';
 import type { ToastContextContextType } from './types';
 import { CheckCircle, Close } from '@mui/icons-material';
 import { IconButton } from '@mui/material';
-
-const ToastContext = createContext<ToastContextContextType | undefined>(undefined);
+import { ToastContext } from './context';
 
 export const ToastProvider: FC<PropsWithChildren> = ({children}) => {
   const values: ToastContextContextType = {
@@ -53,12 +52,4 @@ export const ToastProvider: FC<PropsWithChildren> = ({children}) => {
       {children}
     </ToastContext.Provider>
   );
-};
-
-export const useToast = (): ToastContextContextType => {
-  const context = useContext(ToastContext);
-  if (!context) {
-    throw new Error('Error occurred: App might not be wrapped with ToastProvider.');
-  }
-  return context;
 };

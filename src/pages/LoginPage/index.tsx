@@ -11,7 +11,7 @@ import {
 } from '@mui/material';
 import { Google } from '@mui/icons-material';
 import { auth } from "../../utils/firebase";
-import { useToast } from '../../components/ToastProvider';
+import { useToast } from '../../components/ToastProvider/hooks';
 
 const provider = new GoogleAuthProvider();
 

@@ -1,6 +1,6 @@
 import React from "react";
 import { Navigate, Outlet, useLocation } from "react-router";
-import { useAuth } from "../AuthContext";
+import { useAuth } from "../AuthContext/hooks";
 
 export const RequireAuth: React.FC = () => {
   const { user, loading } = useAuth();

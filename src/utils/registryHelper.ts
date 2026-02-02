@@ -1,4 +1,4 @@
-import type { RegistryEntryView } from "../hooks/useRegistry";
+import type { RegistryEntryView } from "../hooks/queries/useRegistryQuery";
 
 type UserMap = Record<string, {
   name: string,

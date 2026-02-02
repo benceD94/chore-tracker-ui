@@ -1,5 +1,5 @@
 import { Button, Dialog, DialogActions, DialogContent, DialogTitle, TextField } from "@mui/material";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import type { HouseholdDoc } from "../../../../types/firestore";
 
 export interface HouseholdDialogProps {
@@ -11,22 +11,24 @@ export interface HouseholdDialogProps {
 }
 
 export const HouseholdDialog: React.FC<HouseholdDialogProps> = ({ onSave, onClose, open, isEdit, household }) => {
-  const [householdName, setHouseholdName] = useState('');
+  const [householdName, setHouseholdName] = useState(isEdit && household ? household.name : '');
 
   const handleClose = () => {
     onClose();
   };
-  
+
   const handleSave = () => {
     onSave(householdName);
   }
-  
-  useEffect(() => {
-    setHouseholdName(isEdit && household ? household.name : '')
-  }, [open, isEdit, household])
 
   return (
-    <Dialog onClose={handleClose} open={open} maxWidth="sm" fullWidth>
+    <Dialog
+      onClose={handleClose}
+      open={open}
+      maxWidth="sm"
+      fullWidth
+      key={household?.id || 'new'}
+    >
       <DialogTitle>{isEdit ? 'Edit Household' : 'Create New Household'}</DialogTitle>
       <DialogContent>
         <TextField

@@ -13,17 +13,17 @@ import {
 } from '@mui/material';
 import { Add } from '@mui/icons-material';
 import { RegisterChoreDialog, type ChoreSelection } from './components/RegisterChoreDialog';
-import { registerMultipleChoresDone } from '../../infra/chore';
-import { useSettingsProvider } from '../../authentication/SettingsProvider';
-import { useAuth } from '../../authentication/AuthContext';
-import { useRegistryView } from '../../hooks/useRegistry';
-import type { RegistryDateFilter } from '../../hooks/useRegistry';
+import { useCreateBatchRegistryMutation } from '../../hooks/mutations';
+import { useRegistryViewQuery } from '../../hooks/queries';
+import type { RegistryDateFilter } from '../../api/types';
 import { Summary } from './components/Summary';
 import { Leaderboard } from './components/Leaderboard';
-import { useToast } from '../../components/ToastProvider';
 import { RegisteredChoresList } from './components/RegisteredChoresList';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '../../components/EmptyState';
+import { useToast } from '../../components/ToastProvider/hooks';
+import { useAuth } from '../../authentication/AuthContext/hooks';
+import { useSettingsProvider } from '../../authentication/SettingsProvider/useSettingsProvider';
 
 enum RegistryDateFilterEnum {
   Today = 'today',
@@ -43,7 +43,9 @@ export const DashboardPage: React.FC = () => {
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
   const [filter, setFilter] = useState<RegistryDateFilter>(RegistryDateFilterEnum.Today);
-  const { entries: choresDone } = useRegistryView(household?.id || '', filter);
+  const { data: choresDone = [] } = useRegistryViewQuery(household?.id || null, filter);
+
+  const createBatchRegistryMutation = useCreateBatchRegistryMutation(household?.id || '');
 
   const [isChoreDialogOpen, setIsChoreDialogOpen] = useState(false);
 
@@ -56,25 +58,27 @@ export const DashboardPage: React.FC = () => {
   }
 
   const handleSaveChoreDialog = (selections: ChoreSelection[]) => {
-    setIsChoreDialogOpen(false);
-    if (household && user && selections.length > 0) {
-      registerMultipleChoresDone({
-        householdId: household.id,
-        userId: user.uid,
-        items: selections.map(s => ({
+    if (!household || !user || selections.length === 0) return;
+
+    createBatchRegistryMutation.mutate(
+      {
+        chores: selections.map(s => ({
           choreId: s.choreId,
-          points: s.points,
+          userId: user.uid,
           times: s.times,
         })),
-      })
-      .then(() => {
-        const totalChores = selections.reduce((sum, s) => sum + s.times, 0);
-        notify.success(`${totalChores} chore${totalChores > 1 ? 's' : ''} registered`);
-      })
-      .catch(() => {
-        notify.error('Chore register failed');
-      })
-    }
+      },
+      {
+        onSuccess: () => {
+          const totalChores = selections.reduce((sum, s) => sum + s.times, 0);
+          notify.success(`${totalChores} chore${totalChores > 1 ? 's' : ''} registered`);
+          setIsChoreDialogOpen(false);
+        },
+        onError: () => {
+          notify.error('Chore register failed');
+        },
+      }
+    );
   }
 
   const registerButton = (size: 'small' | 'medium' | 'large' = 'medium') => <Button variant="contained" size={size} startIcon={<Add />} onClick={() => setIsChoreDialogOpen(true)}>Register Chore</Button>;

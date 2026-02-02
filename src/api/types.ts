@@ -123,6 +123,7 @@ export interface RegistryResponseDto {
   userId: string;
   userName: string; // Denormalized user display name
   times: number;
+  points: number;
   completedAt: string;
   createdAt: string;
 }
