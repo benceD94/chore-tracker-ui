@@ -172,7 +172,13 @@ export const CategoriesPage: React.FC = () => {
       </Card>
 
       <CategoryDialog open={open} onClose={handleClose} onSave={handleSave} categoryToEdit={categoryToChange} />
-      <ConfirmationDialog open={isDeleteDialogOpen} onClose={handleCloseDeleteDialog} onSave={handleSaveDeleteDialog} />
+      <ConfirmationDialog
+        open={isDeleteDialogOpen}
+        title="Delete category"
+        message={categoryToChange ? `Are you sure you want to delete "${categoryToChange.name}"? This cannot be undone.` : undefined}
+        onClose={handleCloseDeleteDialog}
+        onSave={handleSaveDeleteDialog}
+      />
     </Box>
   );
 }
