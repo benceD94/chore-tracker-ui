@@ -24,15 +24,16 @@ export const Navigation: React.FC<NavigationProps> = ({isMobileOpen, onDrawerTog
       <Toolbar />
       <List>
         {navItems.map((item) => (
-          <Link to={item.path} key={item.path}>
-            <ListItemButton
-              key={item.path}
-              selected={location.pathname === item.path}
-            >
-              <ListItemIcon>{item.icon}</ListItemIcon>
-              <ListItemText primary={item.label} />
-            </ListItemButton>
-          </Link>
+          <ListItemButton
+            key={item.path}
+            component={Link}
+            to={item.path}
+            selected={location.pathname === item.path}
+            sx={{ textDecoration: 'none', color: 'inherit' }}
+          >
+            <ListItemIcon>{item.icon}</ListItemIcon>
+            <ListItemText primary={item.label} />
+          </ListItemButton>
         ))}
       </List>
     </Box>

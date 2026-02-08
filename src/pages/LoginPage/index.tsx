@@ -106,16 +106,6 @@ export const LoginPage: React.FC = () => {
               Continue with Google
             </Button>
 
-            {/* Footer Text */}
-            <Typography
-              variant="caption"
-              color="text.secondary"
-              align="center"
-              sx={{ mt: 2 }}
-            >
-              By continuing, you agree to our Terms of Service and Privacy
-              Policy
-            </Typography>
           </CardContent>
         </Card>
       </Container>
