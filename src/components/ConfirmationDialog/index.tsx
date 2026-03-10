@@ -32,9 +32,9 @@ export const ConfirmationDialog: React.FC<ConfirmationDialogProps> = ({
         </DialogContent>
       )}
       <DialogActions sx={{ p: 2 }}>
-        <Button onClick={handleClose}>Cancel</Button>
-        <Button variant="contained" color="error" onClick={handleSave}>
-          Delete
+        <Button onClick={handleClose}>No</Button>
+        <Button variant="contained" onClick={handleSave}>
+          Yes
         </Button>
       </DialogActions>
     </Dialog>

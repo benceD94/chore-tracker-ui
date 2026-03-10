@@ -1,18 +1,15 @@
 import { Avatar, Card, CardContent, Divider, Grid, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
 import React, { useMemo } from "react";
+import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
 import type { RegistryEntryView } from "../../../../hooks/queries/useRegistryQuery";
 
 const formatRelativeDate = (date: Date | null): string => {
   if (!date) return '';
-  const now = new Date();
-  const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
-  const target = new Date(date.getFullYear(), date.getMonth(), date.getDate());
-  const diffDays = Math.round((today.getTime() - target.getTime()) / (1000 * 60 * 60 * 24));
-
-  if (diffDays === 0) return 'Today';
-  if (diffDays === 1) return 'Yesterday';
-  if (diffDays < 7) return `${diffDays} days ago`;
-  return date.toLocaleDateString();
+  if (isToday(date)) return 'Today';
+  if (isYesterday(date)) return 'Yesterday';
+  const distance = formatDistanceToNow(date, { addSuffix: true });
+  if (date.getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000) return distance;
+  return format(date, 'MMM d, yyyy');
 };
 
 type SummaryProps = {
