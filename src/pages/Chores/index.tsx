@@ -12,6 +12,7 @@ import {
   Paper,
   IconButton,
   Chip,
+  Skeleton,
 } from '@mui/material';
 import AddIcon from '@mui/icons-material/Add';
 import EditIcon from '@mui/icons-material/Edit';
@@ -29,11 +30,16 @@ import { useToast } from '../../components/ToastProvider/hooks';
 import { useNavigate } from 'react-router';
 import { EmptyState } from '../../components/EmptyState';
 
-const categoryColors: Record<string, string> = {
-  Kitchen: 'primary',
-  Cleaning: 'secondary',
-  General: 'default',
-  Outdoor: 'success',
+type ChipColor = 'default' | 'primary' | 'secondary' | 'success' | 'info' | 'warning';
+
+const chipColors: ChipColor[] = ['primary', 'secondary', 'success', 'info', 'warning', 'default'];
+
+const getCategoryColor = (categoryName: string): ChipColor => {
+  let hash = 0;
+  for (let i = 0; i < categoryName.length; i++) {
+    hash = categoryName.charCodeAt(i) + ((hash << 5) - hash);
+  }
+  return chipColors[Math.abs(hash) % chipColors.length];
 };
 
 export type ChoreInput = {
@@ -51,6 +57,8 @@ export const ChoresPage: React.FC = () => {
   const createChoreMutation = useCreateChoreMutation(household?.id || '');
   const updateChoreMutation = useUpdateChoreMutation(household?.id || '');
   const deleteChoreMutation = useDeleteChoreMutation(household?.id || '');
+
+  const isLoading = createChoreMutation.isPending || updateChoreMutation.isPending || deleteChoreMutation.isPending;
 
   const [open, setOpen] = useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
@@ -167,47 +175,51 @@ export const ChoresPage: React.FC = () => {
         </Button>
       </Box>
 
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Chore name</TableCell>
-              <TableCell>Category</TableCell>
-              <TableCell align="right">Points</TableCell>
-              <TableCell align="right">Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {chores.map((chore) => (
-              <TableRow key={chore.id} hover>
-                <TableCell>{chore.name}</TableCell>
-                <TableCell>
-                  <Chip
-                    label={chore.categoryName ?? 'Unknown'}
-                    size="small"
-                    color={
-                      categoryColors[chore.categoryName ?? 'Unknown'] as
-                        | 'default'
-                        | 'primary'
-                        | 'secondary'
-                        | 'success'
-                    }
-                  />
-                </TableCell>
-                <TableCell align="right">{chore.points}</TableCell>
-                <TableCell align="right">
-                  <IconButton size="small" aria-label="edit" onClick={() => handleOpen(chore)}>
-                    <EditIcon fontSize="small" />
-                  </IconButton>
-                  <IconButton size="small" aria-label="delete" onClick={() => handleOpenDeleteDialog(chore)}>
-                    <DeleteIcon fontSize="small" />
-                  </IconButton>
-                </TableCell>
+      {isLoading ? (
+        <Skeleton variant="rounded" width="100%" height={200} />
+      ) : chores.length === 0 ? (
+        <Paper sx={{ p: 4, textAlign: 'center' }}>
+          <Typography variant="body1" color="text.secondary">
+            No chores yet. Click "Add chore" to get started.
+          </Typography>
+        </Paper>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Chore name</TableCell>
+                <TableCell>Category</TableCell>
+                <TableCell align="right">Points</TableCell>
+                <TableCell align="right">Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {chores.map((chore) => (
+                <TableRow key={chore.id} hover>
+                  <TableCell>{chore.name}</TableCell>
+                  <TableCell>
+                    <Chip
+                      label={chore.categoryName ?? 'Unknown'}
+                      size="small"
+                      color={getCategoryColor(chore.categoryName ?? 'Unknown')}
+                    />
+                  </TableCell>
+                  <TableCell align="right">{chore.points}</TableCell>
+                  <TableCell align="right">
+                    <IconButton size="small" aria-label="edit" onClick={() => handleOpen(chore)}>
+                      <EditIcon fontSize="small" />
+                    </IconButton>
+                    <IconButton size="small" aria-label="delete" onClick={() => handleOpenDeleteDialog(chore)}>
+                      <DeleteIcon fontSize="small" />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
 
       <ChoreDialog
         open={open}
@@ -217,6 +229,8 @@ export const ChoresPage: React.FC = () => {
       />
       <ConfirmationDialog
         open={isDeleteDialogOpen}
+        title="Delete chore"
+        message={choreToChange ? `Are you sure you want to delete "${choreToChange.name}"? This cannot be undone.` : undefined}
         onClose={handleCloseDeleteDialog}
         onSave={handleSaveDeleteDialog}
       />

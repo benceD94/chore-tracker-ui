@@ -1,6 +1,16 @@
 import { Avatar, Card, CardContent, Divider, Grid, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
 import React, { useMemo } from "react";
+import { formatDistanceToNow, isToday, isYesterday, format } from "date-fns";
 import type { RegistryEntryView } from "../../../../hooks/queries/useRegistryQuery";
+
+const formatRelativeDate = (date: Date | null): string => {
+  if (!date) return '';
+  if (isToday(date)) return 'Today';
+  if (isYesterday(date)) return 'Yesterday';
+  const distance = formatDistanceToNow(date, { addSuffix: true });
+  if (date.getTime() > Date.now() - 7 * 24 * 60 * 60 * 1000) return distance;
+  return format(date, 'MMM d, yyyy');
+};
 
 type SummaryProps = {
   choresDone: RegistryEntryView[];
@@ -80,37 +90,43 @@ export const RegisteredChoresList: React.FC<SummaryProps> = ({choresDone}) => {
             Recent activity
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          <List disablePadding>
-            {grouped.map((group) => (
-              <ListItem
-                key={group.key}
-                sx={{
-                  px: 0,
-                  py: 1.5,
-                  borderBottom: '1px solid',
-                  borderColor: 'divider',
-                }}
-              >
-                <ListItemAvatar>
-                  <Avatar src={group.userPhotoURL} />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={
-                    <Typography>
-                      <strong>{group.userName.split(' ')[0]}</strong> completed{' '}
-                      {group.chores
-                        .map((c) =>
-                          c.count > 1 ? `${c.name} x${c.count}` : c.name
-                        )
-                        .join(', ')}{' '}
-                      (+{group.totalPoints})
-                    </Typography>
-                  }
-                  secondary={group.completedAt?.toDateString()}
-                />
-              </ListItem>
-            ))}
-          </List>
+          {grouped.length === 0 ? (
+            <Typography variant="body2" color="text.secondary" sx={{ py: 4, textAlign: 'center' }}>
+              No activity for this period.
+            </Typography>
+          ) : (
+            <List disablePadding>
+              {grouped.map((group) => (
+                <ListItem
+                  key={group.key}
+                  sx={{
+                    px: 0,
+                    py: 1.5,
+                    borderBottom: '1px solid',
+                    borderColor: 'divider',
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar src={group.userPhotoURL} />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={
+                      <Typography>
+                        <strong>{group.userName.split(' ')[0]}</strong> completed{' '}
+                        {group.chores
+                          .map((c) =>
+                            c.count > 1 ? `${c.name} x${c.count}` : c.name
+                          )
+                          .join(', ')}{' '}
+                        (+{group.totalPoints})
+                      </Typography>
+                    }
+                    secondary={formatRelativeDate(group.completedAt)}
+                  />
+                </ListItem>
+              ))}
+            </List>
+          )}
         </CardContent>
       </Card>
     </Grid>)

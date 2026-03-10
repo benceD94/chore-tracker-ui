@@ -34,6 +34,15 @@ enum RegistryDateFilterEnum {
   All = 'all',
 }
 
+const filterLabels: Record<RegistryDateFilterEnum, string> = {
+  [RegistryDateFilterEnum.Today]: 'Today',
+  [RegistryDateFilterEnum.Yesterday]: 'Yesterday',
+  [RegistryDateFilterEnum.ThisWeek]: 'This Week',
+  [RegistryDateFilterEnum.LastWeek]: 'Last Week',
+  [RegistryDateFilterEnum.ThisMonth]: 'This Month',
+  [RegistryDateFilterEnum.All]: 'All Time',
+};
+
 export const DashboardPage: React.FC = () => {
   const theme = useTheme();
   const navigate = useNavigate();
@@ -105,8 +114,9 @@ export const DashboardPage: React.FC = () => {
             id="date-filter"
             value={filter}
             onChange={handleDateFilterChange}
+            renderValue={(value) => filterLabels[value as RegistryDateFilterEnum]}
           >
-            {Object.values(RegistryDateFilterEnum).map((dateFilter) => <MenuItem value={dateFilter} key={dateFilter}>{dateFilter}</MenuItem>)}
+            {Object.values(RegistryDateFilterEnum).map((dateFilter) => <MenuItem value={dateFilter} key={dateFilter}>{filterLabels[dateFilter]}</MenuItem>)}
           </Select>
           {!isMobile && registerButton('medium')}
         </Box>
@@ -118,7 +128,7 @@ export const DashboardPage: React.FC = () => {
         <RegisteredChoresList choresDone={choresDone} />
         <Leaderboard entries={choresDone} />
       </Grid>
-      {isMobile && <Box sx={{position: 'fixed', bottom: 10, left: 'calc(50% - 105px)'}}>{registerButton('large')}</Box>}
+      {isMobile && <Box sx={{position: 'fixed', bottom: 16, left: '50%', transform: 'translateX(-50%)'}}>{registerButton('large')}</Box>}
       <RegisterChoreDialog
         open={isChoreDialogOpen}
         onClose={handleCloseChoreDialog}

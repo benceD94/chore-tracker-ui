@@ -29,19 +29,30 @@ export const Leaderboard: React.FC<SummaryProps> = ({entries}) => {
             Leaderboard
           </Typography>
           <Divider sx={{ mb: 2 }} />
-          <PieChart
-            series={[
-              {
-                data: leaderboard.map((member) => ({
-                  id: member.id,
-                  value: member.points,
-                  label: member.name
-                }))
-              },
-            ]}
-            width={150}
-            height={150}
-          />
+          {leaderboard.length >= 2 && (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mb: 2 }}>
+              <PieChart
+                series={[
+                  {
+                    data: leaderboard.map((member) => ({
+                      id: member.id,
+                      value: member.points,
+                      label: member.name,
+                    })),
+                    innerRadius: 30,
+                  },
+                ]}
+                width={250}
+                height={200}
+                slotProps={{
+                  legend: {
+                    direction: 'row',
+                    position: { vertical: 'bottom', horizontal: 'middle' },
+                  },
+                }}
+              />
+            </Box>
+          )}
           <List disablePadding>
             {leaderboard.map((member, index) => (
               <ListItem

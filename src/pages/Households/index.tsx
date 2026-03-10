@@ -8,7 +8,7 @@ import {
   useUpdateHouseholdMutation,
   useAddHouseholdMemberMutation
 } from "../../hooks/mutations";
-import { Edit, Home, Add, GroupAdd } from "@mui/icons-material";
+import { Edit, Home, Add, GroupAdd, ContentCopy } from "@mui/icons-material";
 import { Members } from "./components/Members";
 import { useSettingsProvider } from "../../authentication/SettingsProvider/hooks";
 import { useToast } from "../../components/ToastProvider/hooks";
@@ -172,7 +172,16 @@ export const HouseholdPage: React.FC = () => {
                 </Box>
 
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, flexWrap: 'wrap' }}>
-                  <Chip label={`Household ID: ${household.id}`} size="small" variant="outlined" />
+                  <Chip
+                    label={`Household ID: ${household.id}`}
+                    size="small"
+                    variant="outlined"
+                    deleteIcon={<ContentCopy sx={{ fontSize: 14 }} />}
+                    onDelete={() => {
+                      navigator.clipboard.writeText(household.id);
+                      notify.success('Household ID copied');
+                    }}
+                  />
                 </Box>
               </CardContent>
             </Card>

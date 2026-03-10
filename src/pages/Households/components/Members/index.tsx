@@ -1,7 +1,6 @@
-import { Avatar, Box, Button, Card, CardContent, Chip, Divider, IconButton, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
+import { Avatar, Box, Button, Card, CardContent, Chip, Divider, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
 import { useState } from "react";
 import type { HouseholdDoc } from "../../../../types/firestore";
-import { MoreVert } from "@mui/icons-material";
 import { InviteMemberDialog } from "../InviteMemberDialog";
 
 export interface MembersProps {
@@ -53,11 +52,6 @@ export const Members: React.FC<MembersProps> = ({ household, onAddMember }) => {
                 px: 0,
                 py: 1,
               }}
-              secondaryAction={
-                <IconButton edge="end" aria-label="more actions">
-                  <MoreVert />
-                </IconButton>
-              }
             >
               <ListItemAvatar>
                 <Avatar src={member.photoURL} />

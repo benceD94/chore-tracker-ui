@@ -12,7 +12,7 @@ import {
   InputAdornment,
 } from "@mui/material";
 import { Add, Check, Search } from "@mui/icons-material";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import type { ChoreDoc } from "../../../../types/firestore";
 import { useSettingsProvider } from "../../../../authentication/SettingsProvider/hooks";
 
@@ -62,6 +62,13 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
   // Map of choreId -> times selected
   const [selections, setSelections] = useState<Map<string, number>>(new Map());
   const [searchQuery, setSearchQuery] = useState("");
+
+  useEffect(() => {
+    if (open) {
+      setSelections(new Map());
+      setSearchQuery("");
+    }
+  }, [open]);
 
   const handleChoreClick = (chore: ChoreDoc) => {
     setSelections(prev => {
@@ -138,7 +145,6 @@ export const RegisterChoreDialog: React.FC<ChoreDialogProps> = ({ open, onSave, 
       onClose={handleClose}
       maxWidth="sm"
       fullWidth
-      key={String(open)}
     >
       <DialogTitle>
         <Stack flexDirection="row" justifyContent="space-between" alignItems="center">

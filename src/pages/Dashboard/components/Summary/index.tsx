@@ -115,7 +115,7 @@ export const Summary: React.FC<SummaryProps> = ({entries}) => {
               <Typography variant="body2" color="text.secondary">
                 Top performer
               </Typography>
-              <Typography variant="h5">{`${topPerformer?.name} (${topPerformer?.points})`}</Typography>
+              <Typography variant="h4" noWrap>{topPerformer ? `${topPerformer.name} (${topPerformer.points})` : '—'}</Typography>
             </Box>
           </Box>
         </CardContent>
