@@ -20,3 +20,9 @@ export {
   useCreateRegistryEntryMutation,
   useCreateBatchRegistryMutation,
 } from './useRegistryMutations';
+
+export {
+  useCreateInviteMutation,
+  useAcceptInviteMutation,
+  useRejectInviteMutation,
+} from './useInviteMutations';

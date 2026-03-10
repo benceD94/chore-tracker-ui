@@ -6,7 +6,8 @@ import { JoinHouseholdDialog } from "./components/JoinHouseholdDialog";
 import {
   useCreateHouseholdMutation,
   useUpdateHouseholdMutation,
-  useAddHouseholdMemberMutation
+  useAddHouseholdMemberMutation,
+  useCreateInviteMutation,
 } from "../../hooks/mutations";
 import { Edit, Home, Add, GroupAdd, ContentCopy } from "@mui/icons-material";
 import { Members } from "./components/Members";
@@ -21,6 +22,7 @@ export const HouseholdPage: React.FC = () => {
   const createHouseholdMutation = useCreateHouseholdMutation();
   const updateHouseholdMutation = useUpdateHouseholdMutation();
   const addHouseholdMemberMutation = useAddHouseholdMemberMutation();
+  const createInviteMutation = useCreateInviteMutation();
 
   const [isDialogOpen, setIsDialogOpen] = useState<boolean>(false);
   const [isEditDialog, setIsEditDialog] = useState<boolean>(false);
@@ -45,18 +47,20 @@ export const HouseholdPage: React.FC = () => {
     );
   }
 
-  function handleAddMember(memberId: string) {
+  function handleInviteMembers(userIds: string[]) {
     if (!household) return;
 
-    addHouseholdMemberMutation.mutate(
-      { householdId: household.id, userId: memberId },
+    createInviteMutation.mutate(
+      { invitedUserIds: userIds, householdId: household.id },
       {
         onSuccess: () => {
-          notify.success('Member added');
+          notify.success(
+            userIds.length === 1 ? 'Invite sent' : `${userIds.length} invites sent`
+          );
         },
         onError: (err) => {
-          notify.error('Failed to add user');
-          console.error("Failed to add user", err);
+          notify.error('Failed to send invite');
+          console.error('Failed to send invite', err);
         },
       }
     );
@@ -186,7 +190,7 @@ export const HouseholdPage: React.FC = () => {
               </CardContent>
             </Card>
 
-            <Members household={household} onAddMember={handleAddMember} />
+            <Members household={household} onInviteMembers={handleInviteMembers} />
           </> : <>
             <Box sx={{
               display: 'flex',

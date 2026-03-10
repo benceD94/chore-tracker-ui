@@ -32,6 +32,18 @@ export const queryKeys = {
       [...queryKeys.chores.details(), householdId, id] as const,
   },
 
+  // Invites
+  invites: {
+    all: ['invites'] as const,
+    pending: () => [...queryKeys.invites.all, 'pending'] as const,
+  },
+
+  // Users
+  users: {
+    all: ['users'] as const,
+    list: () => [...queryKeys.users.all, 'list'] as const,
+  },
+
   // Registry
   registry: {
     all: ['registry'] as const,

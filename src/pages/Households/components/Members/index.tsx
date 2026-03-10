@@ -1,28 +1,41 @@
-import { Avatar, Box, Button, Card, CardContent, Chip, Divider, List, ListItem, ListItemAvatar, ListItemText, Typography } from "@mui/material";
-import { useState } from "react";
-import type { HouseholdDoc } from "../../../../types/firestore";
-import { InviteMemberDialog } from "../InviteMemberDialog";
+import {
+  Avatar,
+  Box,
+  Button,
+  Card,
+  CardContent,
+  Chip,
+  Divider,
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  Typography,
+} from '@mui/material';
+import { useState } from 'react';
+import type { HouseholdDoc } from '../../../../types/firestore';
+import { InviteMemberDialog } from '../InviteMemberDialog';
 
 export interface MembersProps {
   household: HouseholdDoc;
-  onAddMember: (memberId: string) => void;
+  onInviteMembers: (userIds: string[]) => void;
 }
 
-export const Members: React.FC<MembersProps> = ({ household, onAddMember }) => {
+export const Members: React.FC<MembersProps> = ({ household, onInviteMembers }) => {
   const [openInviteDialog, setOpenInviteDialog] = useState(false);
 
   const handleOpenInviteDialog = () => {
     setOpenInviteDialog(true);
-  }
+  };
 
   const handleInviteMemberClose = () => {
     setOpenInviteDialog(false);
-  }
-  
-  const handleInviteMemberSave = (memberId: string) => {
+  };
+
+  const handleInviteMemberSave = (userIds: string[]) => {
     setOpenInviteDialog(false);
-    onAddMember(memberId)
-  }
+    onInviteMembers(userIds);
+  };
 
   return (
     <Card sx={{ mb: 4 }}>
@@ -37,8 +50,18 @@ export const Members: React.FC<MembersProps> = ({ household, onAddMember }) => {
         >
           <Typography variant="h6">Members</Typography>
           <Box>
-            <Button sx={{mr: 2}} size="small" variant="outlined" onClick={handleOpenInviteDialog}>Invite</Button>
-            <Chip label={`${household?.memberIds.length ?? 0} members`} size="small" />
+            <Button
+              sx={{ mr: 2 }}
+              size="small"
+              variant="outlined"
+              onClick={handleOpenInviteDialog}
+            >
+              Invite
+            </Button>
+            <Chip
+              label={`${household?.memberIds.length ?? 0} members`}
+              size="small"
+            />
           </Box>
         </Box>
 
@@ -58,7 +81,9 @@ export const Members: React.FC<MembersProps> = ({ household, onAddMember }) => {
               </ListItemAvatar>
               <ListItemText
                 primary={
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                  <Box
+                    sx={{ display: 'flex', alignItems: 'center', gap: 1 }}
+                  >
                     <span>{member.displayName}</span>
                   </Box>
                 }
@@ -69,9 +94,10 @@ export const Members: React.FC<MembersProps> = ({ household, onAddMember }) => {
       </CardContent>
       <InviteMemberDialog
         open={openInviteDialog}
+        existingMemberIds={household.memberIds}
         onClose={handleInviteMemberClose}
         onSave={handleInviteMemberSave}
       />
     </Card>
   );
-}
+};
