@@ -128,6 +128,21 @@ export interface RegistryResponseDto {
   createdAt: string;
 }
 
+// Invite DTOs
+export interface CreateInviteDto {
+  invitedUserIds: string[];
+  householdId: string;
+}
+
+export interface InviteResponseDto {
+  id: string;
+  fromUser: UserResponseDto;
+  invitedUserIds: string[];
+  householdId: string;
+  householdName: string;
+  createdAt: string;
+}
+
 // Registry query parameters
 export type RegistryDateFilter =
   | 'today'
